@@ -44,6 +44,10 @@
   mark.hl { background: color-mix(in srgb, var(--hl) 38%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; cursor: pointer; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--hl) 85%, transparent); scroll-margin-top: 140px; transition: background .2s; }
   .dark mark.hl { background: color-mix(in srgb, var(--hl) 30%, transparent); }
   mark.hl:hover { background: color-mix(in srgb, var(--hl) 55%, transparent); }
+  .qt { text-decoration: underline; text-decoration-color: #6366f1; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .dark .qt { text-decoration-color: #818cf8; }
+  [data-q]::before { content: "❝"; font-size: .72em; color: #6366f1; vertical-align: super; margin-inline-end: 1px; }
+  .qt[data-act] { cursor: pointer; }
   mark.hl.has-note::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: var(--hl); margin-left: 2px; vertical-align: super; }
   .flash { animation: flash 2.2s ease-out 1; }
   @keyframes flash { 0%,30% { outline: 3px solid #6366f1; outline-offset: 3px; } 100% { outline: 3px solid transparent; outline-offset: 3px; } }
@@ -125,6 +129,26 @@ const splitSentences = t => (t.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+["')\
 let LANG = (() => { try { return localStorage.getItem('lectern.lang') === 'ar' ? 'ar' : 'en'; } catch (e) { return 'en'; } })();
 const L = (en, ar) => LANG === 'ar' ? ar : en;
 const AR = /*AR_DICT*/{
+"Highlights": "التظليلات",
+"Quotations": "الاقتباسات",
+"quotation": "اقتباس",
+"quotations": "اقتباسات",
+"Add to quotations (Q)": "أضف إلى الاقتباسات (Q)",
+"Quote": "اقتباس",
+"Already in this article’s quotations": "موجود مسبقاً في اقتباسات هذا المقال",
+"No quotations yet": "لا اقتباسات بعد",
+"Select a passage in the reader and choose “Add to quotations” (or press Q). They collect here with ready-to-paste citations.": "حدّد مقطعاً في القارئ واختر «اقتباس» (أو اضغط Q)، وستتجمع هنا مع توثيق جاهز للصق.",
+"Copy all": "نسخ الكل",
+"Direct quotations need a page number in Harvard.": "الاقتباس المباشر يحتاج رقم صفحة في نظام هارفارد.",
+"without a page.": "دون رقم صفحة.",
+"words": "كلمة",
+"Long quotation · block format": "اقتباس طويل · بصيغة كتلة",
+"Quotations over 40 words are usually set as an indented block without quotation marks": "الاقتباسات التي تتجاوز 40 كلمة تُكتب عادة ككتلة مُزاحة دون علامات تنصيص",
+"Page": "الصفحة",
+"Note: where will you use it?": "ملاحظة: أين ستستخدمه؟",
+"Remove from quotations": "إزالة من الاقتباسات",
+"Removed from quotations": "أُزيل من الاقتباسات",
+
 "Drop the article’s PDF, look it up by DOI, or paste its text. DOI look-up uses Crossref’s open API.": "أسقط ملف PDF للمقال، أو ابحث عنه بـ DOI، أو الصق نصه. البحث بـ DOI يستخدم واجهة Crossref المفتوحة.",
 "PDF file": "ملف PDF",
 "Drop a PDF here, or tap to choose one": "أسقط ملف PDF هنا، أو انقر لاختياره",
@@ -431,6 +455,8 @@ const AR_PATTERNS = /*AR_PATTERNS*/[
   [/^(\d+) articles · (\d+) quotes · (\d+) research themes$/, (m, a, b, c) => `${a} مقال · ${b} اقتباس · ${c} محاور بحثية`],
   [/^All (\d+)$/, (m, n) => `الكل ${n}`],
   [/^All quotes \((\d+)\)$/, (m, n) => `كل الاقتباسات (${n})`],
+  [/^All highlights \((\d+)\)$/, (m, n) => `كل التظليلات (${n})`],
+  [/^Quotations \((\d+)\)$/, (m, n) => `الاقتباسات (${n})`],
   [/^(\d+) items · (\d+) articles?$/, (m, a, b) => `${a} عنصر · ${b} مقال`],
   [/^(\d+) items$/, (m, n) => `${n} عنصر`],
   [/^(\d+) sources$/, (m, n) => `${n} مصادر`],
@@ -512,7 +538,7 @@ const STOP = new Set('the and for that with this from have which their there abo
 function mkArticle(o) {
   return Object.assign({
     id: uid(), title: '', authors: [], year: '', journal: '', volume: '', issue: '', pages: '', doi: '', url: '',
-    abstract: '', content: '', status: 'To Read', rating: 0, platforms: [], subjectTags: [], methodTags: [],
+    abstract: '', content: '', status: 'To Read', rating: 0, platforms: [], subjectTags: [], methodTags: [], quotations: [],
     critical: '', pageNotes: [], highlights: [], summary: { thesis: '', questions: '', methodology: '', findings: '', gap: '', source: '' },
     translations: {}, sample: false, added: new Date().toISOString(), lastOpened: null
   }, o);
@@ -1140,15 +1166,24 @@ function validHL(a, h, paras) {
   return false;
 }
 function paraHTML(a, i, text) {
-  const hls = a.highlights.filter(h => h.para === i).sort((x, y) => x.start - y.start);
-  let out = '', pos = 0;
-  for (const h of hls) {
-    if (h.start < pos) continue;
-    out += esc(text.slice(pos, h.start));
-    out += `<mark data-hl="${h.id}" data-act="editHL" data-id="${h.id}" class="hl${h.note ? ' has-note' : ''}" style="--hl:${colorOf(h.color).hex}" title="${esc(colorOf(h.color).name)}${h.note ? ' — ' + esc(h.note) : ''}">${esc(text.slice(h.start, h.end))}</mark>`;
-    pos = h.end;
+  const H = []; let pos = 0;
+  for (const hl of a.highlights.filter(x => x.para === i).sort((x, y) => x.start - y.start)) { if (hl.start < pos) continue; H.push(hl); pos = hl.end; }
+  const Q = (a.quotations || []).filter(q => q.para === i);
+  const cuts = new Set([0, text.length]);
+  H.forEach(x => { cuts.add(x.start); cuts.add(x.end); }); Q.forEach(q => { cuts.add(Math.max(0, q.start)); cuts.add(Math.min(text.length, q.end)); });
+  const pts = [...cuts].sort((x, y) => x - y);
+  let out = '', open = null;
+  for (let k = 0; k < pts.length - 1; k++) {
+    const s0 = pts[k], e0 = pts[k + 1]; if (e0 <= s0) continue;
+    const hl = H.find(x => x.start <= s0 && e0 <= x.end);
+    if (open && open !== hl) { out += '</mark>'; open = null; }
+    if (hl && open !== hl) { out += `<mark data-hl="${hl.id}" data-act="editHL" data-id="${hl.id}" class="hl${hl.note ? ' has-note' : ''}" style="--hl:${colorOf(hl.color).hex}" title="${esc(colorOf(hl.color).name)}${hl.note ? ' — ' + esc(hl.note) : ''}">`; open = hl; }
+    let seg = esc(text.slice(s0, e0));
+    const q = Q.find(x => x.start <= s0 && e0 <= x.end);
+    if (q) seg = `<span class="qt"${q.start === s0 ? ` data-q="${q.id}"` : ''}${hl ? '' : ` data-act="goQuoteTab" data-id="${q.id}"`}>${seg}</span>`;
+    out += seg;
   }
-  out += esc(text.slice(pos));
+  if (open) out += '</mark>';
   const tr = a.translations?.[i];
   return `<div class="para relative" id="para-${i}">
     <div class="para-tools absolute -start-11 top-1 hidden sm:flex flex-col gap-1">
@@ -1160,10 +1195,14 @@ function paraHTML(a, i, text) {
   </div>`;
 }
 function readerBodyHTML(a) {
-  const ps = paraList(a); a.highlights = a.highlights.filter(h => validHL(a, h, ps));
+  const ps = paraList(a); a.highlights = a.highlights.filter(h => validHL(a, h, ps)); a.quotations = (a.quotations || []).filter(q => validHL(a, q, ps));
   return ps.length ? ps.map((p, i) => paraHTML(a, i, p)).join('') :
     `<div class="rounded-xl border border-dashed border-ink-300 dark:border-ink-700 p-6 text-center text-sm text-ink-500">No full text yet. Open the article via EZproxy, copy the text, and paste it in <button data-act="editText" class="underline text-accent-600">Edit full text</button>.</div>`;
 }
+const readerFootHTML = a => `
+        <button data-act="panel" data-p="quotes" class="${btnCls}">${ic('highlighter')}All highlights (${a.highlights.length})</button>
+        <button data-act="panel" data-p="quotations" class="${btnCls}">${ic('quote')}Quotations (${(a.quotations || []).length})</button>
+        <button data-act="panel" data-p="cite" class="${btnCls}">${ic('book-check')}Cite this</button>`;
 function readerHTML() {
   const a = art(); if (!a) { UI.view = 'library'; return libraryHTML(); }
   const prox = proxied(a);
@@ -1188,20 +1227,18 @@ function readerHTML() {
       </div>
       ${a.abstract ? `<div class="mt-8 mb-10 rounded-2xl bg-white dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 p-5"><div class="${labelCls}">Abstract</div><p data-raw dir="auto" class="font-serif text-[1.02rem] leading-relaxed text-ink-700 dark:text-ink-200">${esc(a.abstract)}</p></div>` : '<div class="h-8"></div>'}
       <div id="reader-body">${readerBodyHTML(a)}</div>
-      <div class="mt-12 pt-6 border-t border-ink-200 dark:border-ink-800 flex flex-wrap gap-2 text-sm">
-        <button data-act="panel" data-p="quotes" class="${btnCls}">${ic('quote')}All quotes (${a.highlights.length})</button>
-        <button data-act="panel" data-p="cite" class="${btnCls}">${ic('book-check')}Cite this</button>
-      </div>
+      <div id="reader-foot" class="mt-12 pt-6 border-t border-ink-200 dark:border-ink-800 flex flex-wrap gap-2 text-sm">${readerFootHTML(a)}</div>
     </article>
   </section>
   <aside id="panel" class="fixed lg:sticky inset-y-0 lg:inset-auto end-0 lg:top-[57px] z-40 lg:z-auto w-full sm:w-[440px] lg:w-auto h-[100dvh] lg:h-[calc(100vh-57px)] bg-white dark:bg-ink-900 border-s border-ink-200 dark:border-ink-800 flex flex-col transition-transform duration-200 ${UI.panelOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full'} lg:translate-x-0 lg:shadow-none">${panelHTML(a)}</aside>
   </div>`;
 }
-const PANEL_TABS = [['details', 'Details', 'sliders-horizontal'], ['summary', 'Summary', 'sparkles'], ['quotes', 'Quotes', 'quote'], ['cite', 'Cite', 'book-check'], ['assistant', 'Assistant', 'bot']];
+const PANEL_TABS = [['details', 'Details', 'sliders-horizontal'], ['summary', 'Summary', 'sparkles'], ['quotes', 'Highlights', 'highlighter'], ['quotations', 'Quotations', 'quote'], ['cite', 'Cite', 'book-check'], ['assistant', 'Assistant', 'bot']];
 function panelHTML(a) {
-  const body = { details: detailsTab, summary: summaryTab, quotes: quotesTab, cite: citeTab, assistant: assistantTab }[UI.panel](a);
+  const body = { details: detailsTab, summary: summaryTab, quotes: quotesTab, quotations: quotationsTab, cite: citeTab, assistant: assistantTab }[UI.panel](a);
+  const nq = (a.quotations || []).length;
   return `<div class="flex items-center border-b border-ink-200 dark:border-ink-800 px-2 shrink-0">
-    <div class="flex flex-1 overflow-x-auto no-scrollbar">${PANEL_TABS.map(([k, l, i]) => `<button data-act="panel" data-p="${k}" class="shrink-0 px-3 h-12 text-sm font-medium inline-flex items-center gap-1.5 border-b-2 ${UI.panel === k ? 'border-accent-600 text-accent-700 dark:text-accent-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'}">${ic(i)}${l}</button>`).join('')}</div>
+    <div class="flex flex-1 overflow-x-auto no-scrollbar">${PANEL_TABS.map(([k, l, i]) => `<button data-act="panel" data-p="${k}" class="shrink-0 px-3 h-12 text-sm font-medium inline-flex items-center gap-1.5 border-b-2 ${UI.panel === k ? 'border-accent-600 text-accent-700 dark:text-accent-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'}">${ic(i)}${l}${k === 'quotations' && nq ? `<span data-raw class="min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold bg-accent-100 text-accent-700 dark:bg-accent-500/20 dark:text-accent-300 grid place-items-center">${nq}</span>` : ''}</button>`).join('')}</div>
     <button data-act="togglePanel" class="lg:hidden w-10 h-10 grid place-items-center">${ic('x')}</button>
   </div>
   <div id="panel-body" class="flex-1 overflow-y-auto scroll-thin ${UI.panel === 'assistant' ? 'flex flex-col' : 'p-4 sm:p-5'}">${body}</div>`;
@@ -1213,7 +1250,7 @@ function renderPanel() {
   const nb = $('#panel-body'); if (nb && UI.panel !== 'assistant') nb.scrollTop = st;
   if (UI.panel === 'assistant') { const log = $('#chatlog'); if (log) log.scrollTop = log.scrollHeight; }
 }
-function renderBody() { const a = art(); const b = $('#reader-body'); if (!a || !b) return; b.innerHTML = readerBodyHTML(a); icons(); }
+function renderBody() { const a = art(); const b = $('#reader-body'); if (!a || !b) return; b.innerHTML = readerBodyHTML(a); const f = $('#reader-foot'); if (f) f.innerHTML = readerFootHTML(a); icons(); }
 
 /* Tag chip editor */
 function tagEditor(a, field, suggestions, placeholder) {
@@ -1313,6 +1350,35 @@ function quotesTab(a) {
       <button data-act="copyArticleMd" data-id="${a.id}" class="${btnCls} flex-1 justify-center">${ic('clipboard-copy')}Copy as Markdown</button>
       <button data-act="synthArticle" data-id="${a.id}" class="${btnCls} flex-1 justify-center">${ic('network')}Synthesis view</button>
     </div>
+  </div>`;
+}
+const qWords = q => (q.text.match(/\S+/g) || []).length;
+const LONG_QUOTE = 40;
+function quotationPlain(a, q) { return qWords(q) > LONG_QUOTE ? `${q.text} ${inText(a, q.page)}` : `“${q.text}” ${inText(a, q.page)}`; }
+function quotationHTML(a, q) { return qWords(q) > LONG_QUOTE ? `<blockquote style="margin-left:1.27cm;margin-right:1.27cm">${esc(q.text)} ${esc(inText(a, q.page))}</blockquote>` : `<p>“${esc(q.text)}” ${esc(inText(a, q.page))}</p>`; }
+function quotationsTab(a) {
+  const qs = (a.quotations || []).slice().sort((x, y) => x.para - y.para || x.start - y.start);
+  const noPage = qs.filter(q => !q.page).length;
+  if (!qs.length) return `<div class="text-center text-sm text-ink-500 py-10 px-4">${ic('quote', 'w-8 h-8 mx-auto mb-3 text-accent-500')}<p class="font-medium text-ink-700 dark:text-ink-200">No quotations yet</p><p class="mt-1">Select a passage in the reader and choose “Add to quotations” (or press Q). They collect here with ready-to-paste citations.</p></div>`;
+  return `<div class="space-y-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-sm font-medium"><span data-raw>${qs.length}</span> <span>${qs.length === 1 ? 'quotation' : 'quotations'}</span></span>
+      <span class="ms-auto flex gap-2"><button data-act="copyAllQuotes" class="${btnCls} !h-8 !text-xs">${ic('clipboard-copy', 'w-3.5 h-3.5')}Copy all</button></span>
+    </div>
+    ${noPage ? `<p class="text-xs rounded-lg p-2.5 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">${ic('triangle-alert', 'w-3.5 h-3.5 inline -mt-0.5')} Direct quotations need a page number in Harvard. <span data-raw>${noPage}</span> <span>without a page.</span></p>` : ''}
+    ${qs.map((q, n) => { const w = qWords(q); return `<div id="qi-${q.id}" class="rounded-xl border border-ink-200 dark:border-ink-800 p-3 transition">
+      <div class="flex items-center gap-2 text-[11px] text-ink-500 mb-1.5"><span data-raw class="font-semibold text-accent-700 dark:text-accent-400">${n + 1}</span><span>·</span><span data-raw>¶${q.para + 1}</span><span>·</span><span data-raw>${w}</span><span>words</span>${w > LONG_QUOTE ? `<span class="px-1.5 py-0.5 rounded bg-ink-100 dark:bg-ink-800 font-medium" title="Quotations over 40 words are usually set as an indented block without quotation marks">Long quotation · block format</span>` : ''}</div>
+      <blockquote data-raw dir="auto" class="font-serif text-[15px] leading-relaxed text-ink-800 dark:text-ink-100">${w > LONG_QUOTE ? '' : '“'}${esc(q.text)}${w > LONG_QUOTE ? '' : '”'}</blockquote>
+      <div class="grid grid-cols-[88px_minmax(0,1fr)] gap-2 mt-2.5">
+        <input data-qfield="page" data-id="${q.id}" value="${esc(q.page)}" placeholder="Page" class="${inputCls} !py-1.5 ${q.page ? '' : '!border-amber-300 dark:!border-amber-500/40'}">
+        <input data-qfield="note" data-id="${q.id}" value="${esc(q.note)}" placeholder="Note: where will you use it?" class="${inputCls} !py-1.5">
+      </div>
+      <div class="flex flex-wrap items-center gap-1 mt-2">
+        <span data-raw data-qcite="${q.id}" class="text-xs text-ink-500 me-auto">${esc(inText(a, q.page))}</span>
+        <button data-act="goQ" data-id="${q.id}" class="h-7 px-2 rounded-md text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 inline-flex items-center gap-1" title="Jump to source">${ic('locate-fixed', 'w-3.5 h-3.5')}Source</button>
+        <button data-act="copyQ" data-id="${q.id}" class="h-7 px-2 rounded-md text-xs font-medium bg-accent-700 hover:bg-accent-800 text-white inline-flex items-center gap-1">${ic('copy', 'w-3.5 h-3.5')}Copy with citation</button>
+        <button data-act="delQ" data-id="${q.id}" class="h-7 w-7 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 grid place-items-center" title="Remove from quotations">${ic('trash-2', 'w-3.5 h-3.5')}</button>
+      </div></div>`; }).join('')}
   </div>`;
 }
 function citeTab(a) {
@@ -1428,6 +1494,7 @@ function articleSynthHTML() {
       </div>
       <div class="space-y-4">
         <div class="${card} p-4"><div class="${labelCls}">Article notes</div><div class="space-y-2">${a.pageNotes.length ? a.pageNotes.map(n => noteItem(a, n)).join('') : '<p class="text-sm text-ink-500">None yet.</p>'}</div></div>
+        ${(a.quotations || []).length ? `<div class="${card} p-4"><div class="${labelCls}">Quotations</div><div class="space-y-2">${a.quotations.slice().sort((x, y) => x.para - y.para || x.start - y.start).map(q => `<button data-act="goQ" data-id="${q.id}" class="block w-full text-start rounded-lg p-2 hover:bg-ink-50 dark:hover:bg-ink-800"><span data-raw dir="auto" class="font-serif text-sm block">“${esc(q.text)}”</span><span data-raw class="text-xs text-ink-400">${esc(inText(a, q.page))}</span></button>`).join('')}</div></div>` : ''}
         ${a.critical ? `<div class="${card} p-4"><div class="${labelCls}">Critical commentary</div><p data-raw dir="auto" class="text-sm whitespace-pre-wrap">${esc(a.critical)}</p></div>` : ''}
         ${a.summary?.thesis ? `<div class="${card} p-4"><div class="${labelCls}">Thesis</div><p data-raw dir="auto" class="text-sm">${esc(a.summary.thesis)}</p><div class="${labelCls} mt-3">Gap</div><p data-raw dir="auto" class="text-sm">${esc(a.summary.gap || '—')}</p></div>` : ''}
       </div>
@@ -1448,6 +1515,7 @@ function searchHTML() {
   S.articles.forEach(a => {
     if ([a.title, authorsToStr(a.authors), a.journal, a.abstract, ...a.subjectTags, ...a.methodTags].join(' ').toLowerCase().includes(ql)) R.meta.push(a);
     a.highlights.forEach(h => { if ((h.text + ' ' + h.note).toLowerCase().includes(ql)) R.quotes.push({ a, h }); });
+    (a.quotations || []).forEach(q => { if ((q.text + ' ' + q.note).toLowerCase().includes(ql)) R.quotes.push({ a, h: q, isQ: true }); });
     a.pageNotes.forEach(n => { if (n.text.toLowerCase().includes(ql)) R.notes.push({ a, text: n.text, kind: 'Article note' }); });
     if (a.critical.toLowerCase().includes(ql)) R.notes.push({ a, text: a.critical, kind: 'Critical commentary' });
     SUM_FIELDS.forEach(([k, l]) => { const v = a.summary?.[k] || ''; if (v.toLowerCase().includes(ql)) R.notes.push({ a, text: v, kind: 'Summary · ' + l }); });
@@ -1457,7 +1525,7 @@ function searchHTML() {
   const sec = (title, icon, n, body) => n ? `<section class="mt-8"><h2 class="flex items-center gap-2 font-semibold mb-3">${ic(icon, 'w-4 h-4 text-accent-600')}${title}<span class="text-ink-400 font-normal text-sm">${n}</span></h2><div class="space-y-2">${body}</div></section>` : '';
   return head + `<p class="text-sm text-ink-500 mt-2">${total} result${total === 1 ? '' : 's'} for “${esc(q)}”</p>
     ${sec('Articles', 'library', R.meta.length, R.meta.map(a => `<button data-act="open" data-id="${a.id}" class="w-full text-start ${card} p-4 hover:border-accent-300"><div data-raw dir="auto" class="font-serif font-semibold">${snippet(a.title, q, 200)}</div><div data-raw class="text-xs text-ink-500 mt-1">${esc(inText(a))}</div>${a.abstract.toLowerCase().includes(ql) ? `<p data-raw dir="auto" class="text-sm text-ink-600 dark:text-ink-300 mt-2">${snippet(a.abstract, q)}</p>` : ''}</button>`).join(''))}
-    ${sec('Highlighted quotes', 'highlighter', R.quotes.length, R.quotes.map(({ a, h }) => `<button data-act="goHL" data-id="${h.id}" class="w-full text-start ${card} p-4 hover:border-accent-300 flex gap-3"><span class="w-1.5 rounded-full shrink-0" style="background:${colorOf(h.color).hex}"></span><span data-raw dir="auto" class="min-w-0"><span class="font-serif block">“${snippet(h.text, q, 160)}”</span>${h.note ? `<span class="block text-sm text-ink-500 mt-1">${snippet(h.note, q)}</span>` : ''}<span class="block text-xs text-ink-400 mt-1">${esc(inText(a))} · ${esc(colorOf(h.color).name)}</span></span></button>`).join(''))}
+    ${sec('Highlighted quotes', 'highlighter', R.quotes.length, R.quotes.map(({ a, h, isQ }) => `<button data-act="${isQ ? 'goQ' : 'goHL'}" data-id="${h.id}" class="w-full text-start ${card} p-4 hover:border-accent-300 flex gap-3"><span class="w-1.5 rounded-full shrink-0" style="background:${isQ ? '#6366f1' : colorOf(h.color).hex}"></span><span data-raw dir="auto" class="min-w-0"><span class="font-serif block">“${snippet(h.text, q, 160)}”</span>${h.note ? `<span class="block text-sm text-ink-500 mt-1">${snippet(h.note, q)}</span>` : ''}<span class="block text-xs text-ink-400 mt-1">${esc(inText(a, isQ ? h.page : ''))} · ${isQ ? '❝' : esc(colorOf(h.color).name)}</span></span></button>`).join(''))}
     ${sec('Notes & summaries', 'notebook-pen', R.notes.length, R.notes.map(({ a, text, kind }) => `<button data-act="open" data-id="${a.id}" class="w-full text-start ${card} p-4 hover:border-accent-300"><div class="text-[11px] font-semibold uppercase tracking-wide text-ink-500"><span>${esc(kind)}</span> · <span data-raw>${esc(inText(a))}</span></div><p data-raw dir="auto" class="text-sm mt-1">${snippet(text, q)}</p></button>`).join(''))}
     ${sec('Full text', 'file-text', R.text.length, R.text.slice(0, 60).map(({ a, p, i }) => `<button data-act="goPara" data-aid="${a.id}" data-i="${i}" class="w-full text-start ${card} p-4 hover:border-accent-300"><p data-raw dir="auto" class="font-serif text-[15px]">${snippet(p, q)}</p><div data-raw class="text-xs text-ink-400 mt-1">${esc(inText(a))} · ¶${i + 1}</div></button>`).join(''))}
   </div>`;
@@ -1486,6 +1554,7 @@ function showSelTool(info) {
     ? `<span class="text-xs text-ink-500 px-2">Highlights work within one paragraph</span><button data-act="selTranslate" class="h-9 px-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 inline-flex items-center gap-1 text-xs font-medium">${ic('languages')}Translate</button>`
     : S.colors.map((c, i) => `<button data-act="selHL" data-c="${c.key}" title="${esc(c.name)} (${i + 1})" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800"><span class="w-5 h-5 rounded-full ring-2 ring-white dark:ring-ink-900 shadow" style="background:${c.hex}"></span></button>`).join('') +
       `<span class="w-px h-6 bg-ink-200 dark:bg-ink-700 mx-0.5"></span>
+      <button data-act="selQuote" title="Add to quotations (Q)" class="h-9 px-2.5 rounded-xl hover:bg-accent-50 dark:hover:bg-accent-500/10 text-accent-700 dark:text-accent-400 inline-flex items-center gap-1 text-xs font-semibold">${ic('quote')}<span class="hidden sm:inline">Quote</span></button>
       <button data-act="selNote" title="Highlight + note" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('sticky-note')}</button>
       <button data-act="selTranslate" title="Translate EN ⇄ AR" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('languages')}</button>
       <button data-act="selCopy" title="Copy with citation" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('copy')}</button>`;
@@ -1929,6 +1998,8 @@ function articleMd(a) {
   if (a.platforms.length) s += `**Platforms:** ${a.platforms.join(', ')}\n`;
   if (a.subjectTags.length || a.methodTags.length) s += `**Tags:** ${a.subjectTags.join(', ')} | *${a.methodTags.join(', ')}*\n`;
   S.colors.forEach(c => { const hs = a.highlights.filter(h => h.color === c.key).sort((x, y) => x.para - y.para || x.start - y.start); if (hs.length) s += `\n## ${c.name}\n` + hs.map(h => `> “${h.text}” ${inText(a, h.page)}${h.note ? `\n\n- Note: ${h.note}` : ''}`).join('\n\n') + '\n'; });
+  const qs = (a.quotations || []).slice().sort((x, y) => x.para - y.para || x.start - y.start);
+  if (qs.length) s += `\n## Quotations\n` + qs.map((q, n) => `${n + 1}. ${quotationPlain(a, q)}${q.note ? `\n   - ${q.note}` : ''}`).join('\n') + '\n';
   if (a.pageNotes.length) s += `\n## Notes\n` + a.pageNotes.map(n => `- ${n.text}`).join('\n') + '\n';
   if (a.critical) s += `\n## Critical commentary\n${a.critical}\n`;
   return s;
@@ -1951,11 +2022,13 @@ function openArticle(id, target) {
   requestAnimationFrame(() => {
     let el = null;
     if (target?.hl) el = document.querySelector(`[data-hl="${target.hl}"]`);
+    else if (target?.q) el = document.querySelector(`[data-q="${target.q}"]`);
     else if (target?.para != null) el = document.querySelector(`[data-para="${target.para}"]`);
     if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
     else window.scrollTo({ top: 0 });
   });
 }
+function flashQ(id) { requestAnimationFrame(() => { const el = document.getElementById('qi-' + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }); }
 function goHL(id) { const a = S.articles.find(x => x.highlights.some(h => h.id === id)); if (a) openArticle(a.id, { hl: id }); }
 
 /* =========================================================
@@ -2075,6 +2148,23 @@ const A = {
   copyMsg: t => copyText(S.chats[UI.articleId][+t.dataset.i].content),
   /* selection toolbar */
   selHL: t => addHighlight(t.dataset.c),
+  selQuote: () => {
+    const a = art(); const s = UI.sel; if (!a || !s || s.multi) return;
+    a.quotations = a.quotations || [];
+    if (a.quotations.some(q => q.para === s.para && q.start === s.start && q.end === s.end)) { toast('Already in this article’s quotations'); return; }
+    a.quotations.push({ id: uid(), para: s.para, start: s.start, end: s.end, text: s.text, page: '', note: '', created: new Date().toISOString() });
+    save(); window.getSelection().removeAllRanges(); hideSelTool(); renderBody(); renderPanel();
+    toast(L(`Added to quotations (${a.quotations.length})`, `أُضيف إلى الاقتباسات (${a.quotations.length})`));
+  },
+  goQuoteTab: t => { UI.panel = 'quotations'; if (innerWidth < 1024 && !UI.panelOpen) A.togglePanel(); renderPanel(); flashQ(t.dataset.id); },
+  goQ: t => { const id = t.dataset.id; const a = S.articles.find(x => (x.quotations || []).some(q => q.id === id)); if (a) openArticle(a.id, { q: id }); },
+  copyQ: t => { const a = S.articles.find(x => (x.quotations || []).some(q => q.id === t.dataset.id)); const q = a.quotations.find(x => x.id === t.dataset.id); copyText(quotationPlain(a, q), quotationHTML(a, q)); },
+  copyAllQuotes: () => {
+    const a = art(); const qs = (a.quotations || []).slice().sort((x, y) => x.para - y.para || x.start - y.start);
+    const md = `## ${L('Quotations', 'الاقتباسات')} — ${a.title} ${inText(a)}\n\n` + qs.map((q, n) => `${n + 1}. ${quotationPlain(a, q)}${q.note ? `\n   - ${q.note}` : ''}`).join('\n') + `\n\n${reference(a)}`;
+    copyText(md, `<h3>${esc(a.title)}</h3>` + qs.map(q => quotationHTML(a, q)).join('') + `<p>${reference(a, true)}</p>`);
+  },
+  delQ: t => { const a = art(); a.quotations = a.quotations.filter(q => q.id !== t.dataset.id); save(); renderBody(); renderPanel(); toast(L('Removed from quotations', 'أُزيل من الاقتباسات')); },
   selNote: () => addHighlight(S.colors[0].key, true),
   selCopy: () => { const s = UI.sel; if (!s) return; copyText(`“${s.text}” ${inText(art())}`); hideSelTool(); },
   selTranslate: async () => {
@@ -2199,6 +2289,11 @@ const saveSoon = debounce(save, 400);
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.field === 'critical') { art().critical = t.value; saveSoon(); }
+  if (t.dataset.qfield) {
+    const a = art(); const q = (a.quotations || []).find(x => x.id === t.dataset.id); if (!q) return;
+    q[t.dataset.qfield] = t.value.trim(); saveSoon();
+    if (t.dataset.qfield === 'page') { const c = document.querySelector(`[data-qcite="${q.id}"]`); if (c) c.textContent = inText(a, q.page); t.classList.toggle('!border-amber-300', !q.page); }
+  }
   if (t.dataset.sum) { const a = art(); a.summary[t.dataset.sum] = t.value; a.summary.source = 'manual'; saveSoon(); }
   if (t.dataset.topic) { const tp = topicOf(UI.synthTopic); tp[t.dataset.topic] = t.value; saveSoon(); }
   if (t.dataset.filter === 'q') { UI.filters.q = t.value; filterSoon(); }
@@ -2215,6 +2310,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if ($('#modal-root').innerHTML) closeModal(); else if (UI.panelOpen) A.togglePanel(); hideSelTool(); return; }
   if (typing) return;
   if (e.key === '/') { e.preventDefault(); $('#gsearch').focus(); return; }
+  if (UI.view === 'reader' && UI.sel && !UI.sel.multi && (e.key === 'q' || e.key === 'Q')) { e.preventDefault(); A.selQuote(); return; }
   if (UI.view === 'reader' && UI.sel && !UI.sel.multi && /^[1-8]$/.test(e.key)) { const c = S.colors[+e.key - 1]; if (c) { e.preventDefault(); addHighlight(c.key); } }
 });
 
