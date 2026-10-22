@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lectern — Doctoral Reading Lab</title>
+<title>محمد يبحث — مختبر القراءة الدكتورالية</title>
 <meta name="description" content="Academic reading management, literature synthesis and doctoral research tracking for Digital Media research.">
 <meta name="theme-color" content="#3730a3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Lectern">
+<meta name="apple-mobile-web-app-title" content="محمد يبحث">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -71,7 +71,7 @@
 <header class="sticky top-0 z-30 h-[57px] border-b border-ink-200/80 dark:border-ink-800 bg-white/85 dark:bg-ink-950/85 backdrop-blur flex items-center gap-2 sm:gap-3 px-3 sm:px-5">
   <button data-act="nav" data-view="library" class="flex items-center gap-2 shrink-0" title="Library">
     <span class="w-8 h-8 rounded-lg bg-accent-700 text-white grid place-items-center"><i data-lucide="book-marked" class="w-4 h-4"></i></span>
-    <span class="hidden sm:block leading-tight text-start"><span data-raw class="block font-semibold text-[15px] tracking-tight">Lectern</span><span class="block text-[11px] text-ink-500 dark:text-ink-400">Doctoral Reading Lab · Digital Media</span></span>
+    <span class="hidden sm:block leading-tight text-start"><span data-raw dir="rtl" lang="ar" class="block font-semibold text-[16px] tracking-tight" style="font-family:'IBM Plex Sans Arabic',Inter,sans-serif">محمد يبحث</span><span class="block text-[11px] text-ink-500 dark:text-ink-400">Doctoral Reading Lab · Digital Media</span></span>
   </button>
   <div class="flex-1 max-w-xl mx-auto relative">
     <i data-lucide="search" class="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
@@ -102,7 +102,7 @@
 <script>
 'use strict';
 /* =========================================================
-   Lectern — single-file doctoral reading manager
+   محمد يبحث (internal codename: Lectern) — single-file doctoral reading manager
    State lives in localStorage (key: lectern.state.v1).
    ========================================================= */
 
@@ -412,7 +412,7 @@ const AR = /*AR_DICT*/{
 "Metadata retrieved from Crossref": "جُلبت البيانات الوصفية من Crossref",
 "No DOI detected — fill in the details manually": "لم يُرصد DOI — أدخل البيانات يدوياً",
 "No quotes in this theme yet": "لا اقتباسات في هذا المحور بعد",
-"Not a valid Lectern backup": "ليست نسخة احتياطية صالحة لـ Lectern",
+"Not a valid backup file": "ليس ملف نسخة احتياطية صالحاً",
 "Note added": "أُضيفت الملاحظة",
 "Overlaps an existing highlight — edit that one instead.": "يتداخل مع تظليل موجود — حرّر ذلك التظليل بدلاً منه.",
 "Paste some text first": "الصق نصاً أولاً",
@@ -2006,7 +2006,7 @@ const A = {
   /* settings */
   addColor: () => { const pal = ['#a855f7', '#f97316', '#14b8a6', '#ef4444', '#84cc16']; S.colors.push({ key: 'c' + uid(), name: 'New category', hex: pal[S.colors.length % pal.length] }); save(); openSettings(); },
   rmColor: t => { const c = S.colors[+t.dataset.i]; const n = S.articles.reduce((k, a) => k + a.highlights.filter(h => h.color === c.key).length, 0); if (n && !confirm(L(`${n} highlights use “${c.name}”. They will move to “${S.colors[0].key === c.key ? S.colors[1].name : S.colors[0].name}”. Continue?`, `${n} من التظليلات تستخدم «${c.name}» وستُنقل إلى «${S.colors[0].key === c.key ? S.colors[1].name : S.colors[0].name}». متابعة؟`))) return; S.colors.splice(+t.dataset.i, 1); S.articles.forEach(a => a.highlights.forEach(h => { if (h.color === c.key) h.color = S.colors[0].key; })); save(); openSettings(); },
-  exportJSON: () => { const blob = new Blob([JSON.stringify({ ...S, settings: { ...S.settings, apiKey: '' } }, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = `lectern-backup-${new Date().toISOString().slice(0, 10)}.json`; l.click(); URL.revokeObjectURL(u); toast('Backup exported (API key excluded)'); },
+  exportJSON: () => { const blob = new Blob([JSON.stringify({ ...S, settings: { ...S.settings, apiKey: '' } }, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = `mohammed-research-backup-${new Date().toISOString().slice(0, 10)}.json`; l.click(); URL.revokeObjectURL(u); toast('Backup exported (API key excluded)'); },
   resetAll: () => { if (!confirm(L('Replace everything with the sample library? Export a backup first if needed.', 'استبدال كل شيء بالمكتبة النموذجية؟ صدّر نسخة احتياطية أولاً إن لزم.'))) return; const key = S.settings.apiKey; S = seed(); S.settings.apiKey = key; UI.articleId = null; UI.view = 'library'; save(); closeModal(); render(); },
 };
 function refreshAfterEdit() {
@@ -2035,7 +2035,7 @@ document.addEventListener('change', e => {
   if (t.dataset.colorHex != null) { S.colors[+t.dataset.colorHex].hex = t.value; save(); if (UI.view === 'reader') renderBody(); }
   if (t.dataset.colorName != null) { S.colors[+t.dataset.colorName].name = t.value.trim() || 'Untitled'; save(); if (UI.view !== 'reader') render(); else renderPanel(); }
   if (t.id === 'importfile' && t.files[0]) {
-    const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.articles)) throw 0; if (SYNC_ON && SESSION && !confirm(L(`Replace your synced library (${S.articles.length} articles, on all devices) with this backup (${d.articles.length} articles)?`, `استبدال مكتبتك المتزامنة (${S.articles.length} مقالاً على كل الأجهزة) بهذه النسخة (${d.articles.length} مقالاً)؟`))) return; const key = S.settings.apiKey; S = d; S.settings = Object.assign({}, S.settings, { apiKey: key }); S.chats = S.chats || {}; save(); closeModal(); UI.view = 'library'; UI.articleId = null; render(); toast('Backup imported'); } catch (_) { toast('Not a valid Lectern backup', 'error'); } }; r.readAsText(t.files[0]);
+    const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.articles)) throw 0; if (SYNC_ON && SESSION && !confirm(L(`Replace your synced library (${S.articles.length} articles, on all devices) with this backup (${d.articles.length} articles)?`, `استبدال مكتبتك المتزامنة (${S.articles.length} مقالاً على كل الأجهزة) بهذه النسخة (${d.articles.length} مقالاً)؟`))) return; const key = S.settings.apiKey; S = d; S.settings = Object.assign({}, S.settings, { apiKey: key }); S.chats = S.chats || {}; save(); closeModal(); UI.view = 'library'; UI.articleId = null; render(); toast('Backup imported'); } catch (_) { toast('Not a valid backup file', 'error'); } }; r.readAsText(t.files[0]);
   }
 });
 const saveSoon = debounce(save, 400);

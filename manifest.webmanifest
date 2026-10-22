@@ -1,6 +1,8 @@
 {
-  "name": "Lectern — Doctoral Reading Lab",
-  "short_name": "Lectern",
+  "name": "محمد يبحث — مختبر القراءة الدكتورالية",
+  "short_name": "محمد يبحث",
+  "lang": "ar",
+  "dir": "auto",
   "description": "Academic reading, highlighting and literature synthesis for doctoral research.",
   "id": "./",
   "start_url": "./",

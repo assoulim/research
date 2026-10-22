@@ -1,4 +1,4 @@
-// Lectern — Claude proxy (Supabase Edge Function)
+// محمد يبحث — Claude proxy (Supabase Edge Function)
 // Keeps the Anthropic API key on the server. Only signed-in users whose email
 // is listed in ALLOWED_EMAILS may call it.
 //

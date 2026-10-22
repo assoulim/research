@@ -1,4 +1,4 @@
--- Lectern — database schema for Supabase
+-- محمد يبحث — database schema for Supabase
 -- Run once in: Supabase Dashboard → SQL Editor → New query → paste → Run.
 -- Safe to re-run.
 

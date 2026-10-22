@@ -1,4 +1,4 @@
-// Lectern — public client configuration.
+// محمد يبحث — public client configuration.
 // The anon/publishable key is designed to be public: row-level security in
 // supabase/schema.sql ensures each signed-in user can only read and write
 // their own rows. Never put a secret or service_role key in this file.
