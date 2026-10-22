@@ -125,6 +125,12 @@ const splitSentences = t => (t.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+["')\
 let LANG = (() => { try { return localStorage.getItem('lectern.lang') === 'ar' ? 'ar' : 'en'; } catch (e) { return 'en'; } })();
 const L = (en, ar) => LANG === 'ar' ? ar : en;
 const AR = /*AR_DICT*/{
+"Drop the article’s PDF, look it up by DOI, or paste its text. DOI look-up uses Crossref’s open API.": "أسقط ملف PDF للمقال، أو ابحث عنه بـ DOI، أو الصق نصه. البحث بـ DOI يستخدم واجهة Crossref المفتوحة.",
+"PDF file": "ملف PDF",
+"Drop a PDF here, or tap to choose one": "أسقط ملف PDF هنا، أو انقر لاختياره",
+"The text is extracted on this device — the PDF is not uploaded anywhere.": "يُستخرج النص على هذا الجهاز — لا يُرفع الملف إلى أي مكان.",
+"Leave out the reference list": "استبعاد قائمة المراجع",
+
 "Summarise in Claude": "التلخيص في Claude",
 "Uses your Claude subscription — no API key or extra cost.": "يستخدم اشتراكك في Claude — دون مفتاح API ودون تكلفة إضافية.",
 "Copy prompt": "نسخ الطلب",
@@ -625,7 +631,7 @@ const UI = {
   view: 'library', articleId: null, panel: 'details', panelOpen: false,
   filters: { platform: '', status: '', tag: '', q: '', sort: 'recent' },
   synthMode: 'topic', synthArticle: null, synthTopic: null, quoteColor: '',
-  sel: null, globalQ: '', busy: {}, addTab: 'doi', lastDraft: {}, authMode: 'signin'
+  sel: null, globalQ: '', busy: {}, addTab: 'pdf', lastDraft: {}, authMode: 'signin'
 };
 
 /* =========================================================
@@ -1682,9 +1688,18 @@ function openNoteModal(aid, id) {
 function openAddModal() {
   MODAL = { type: 'add', platforms: [], authors: [] };
   const tab = UI.addTab;
-  openModal(`<h3 class="text-xl font-semibold mb-1">Add an article</h3><p class="text-sm text-ink-500 mb-4">DOI look-up uses Crossref’s open API. Paywalled full text can’t be fetched from the browser — open it via EZproxy and paste the text.</p>
-    <div class="inline-flex p-1 rounded-xl bg-ink-100 dark:bg-ink-800 mb-4">${[['doi', 'DOI / URL', 'link'], ['paste', 'Paste text', 'clipboard-paste']].map(([k, l, i]) => `<button data-act="addTab" data-t="${k}" class="h-9 px-3 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 ${tab === k ? 'bg-white dark:bg-ink-900 shadow-sm' : 'text-ink-500'}">${ic(i)}${l}</button>`).join('')}</div>
-    ${tab === 'doi' ? `<div class="flex gap-2"><input id="f-src" placeholder="10.1177/14614448… or https://doi.org/… or article URL" class="${inputCls}"><button data-act="fetchMeta" class="${btnPri} shrink-0">${ic('download-cloud')}Fetch</button></div>
+  openModal(`<h3 class="text-xl font-semibold mb-1">Add an article</h3><p class="text-sm text-ink-500 mb-4">Drop the article’s PDF, look it up by DOI, or paste its text. DOI look-up uses Crossref’s open API.</p>
+    <div class="inline-flex p-1 rounded-xl bg-ink-100 dark:bg-ink-800 mb-4">${[['pdf', 'PDF file', 'file-up'], ['doi', 'DOI / URL', 'link'], ['paste', 'Paste text', 'clipboard-paste']].map(([k, l, i]) => `<button data-act="addTab" data-t="${k}" class="h-9 px-3 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 ${tab === k ? 'bg-white dark:bg-ink-900 shadow-sm' : 'text-ink-500'}">${ic(i)}${l}</button>`).join('')}</div>
+    ${tab === 'pdf' ? `<div id="pdf-drop" data-act="pdfPick" role="button" tabindex="0" class="rounded-2xl border-2 border-dashed border-ink-300 dark:border-ink-700 hover:border-accent-500 hover:bg-accent-50/50 dark:hover:bg-accent-500/5 transition p-8 text-center cursor-pointer">
+        ${ic('file-up', 'w-9 h-9 mx-auto text-accent-600 dark:text-accent-400')}
+        <p class="mt-3 font-medium">Drop a PDF here, or tap to choose one</p>
+        <p class="text-xs text-ink-500 mt-1">The text is extracted on this device — the PDF is not uploaded anywhere.</p>
+        <input type="file" id="pdf-input" accept="application/pdf,.pdf" class="hidden">
+      </div>
+      <label class="flex items-center gap-2 text-sm mt-3"><input type="checkbox" id="pdf-norefs" checked class="w-4 h-4 accent-indigo-600"> Leave out the reference list</label>
+      <div id="pdf-status" class="text-sm mt-2 min-h-[1.25rem]"></div>
+      <div id="f-proxy" class="text-xs text-ink-500 mt-1"></div>`
+      : tab === 'doi' ? `<div class="flex gap-2"><input id="f-src" placeholder="10.1177/14614448… or https://doi.org/… or article URL" class="${inputCls}"><button data-act="fetchMeta" class="${btnPri} shrink-0">${ic('download-cloud')}Fetch</button></div>
       <div id="f-proxy" class="text-xs text-ink-500 mt-2"></div>`
       : `<textarea id="f-paste" rows="6" class="${inputCls}" placeholder="Paste the article text (title, authors, abstract, body)…"></textarea>
       <div class="flex flex-wrap gap-2 mt-2"><button data-act="pasteExtract" data-mode="heuristic" class="${btnCls}">${ic('scan-text')}Extract metadata (offline)</button><button data-act="pasteExtract" data-mode="claude" class="${btnPri}">${ic('sparkles')}Extract with Claude</button></div>`}
@@ -1704,6 +1719,146 @@ function openAddModal() {
     </div>
     <div class="flex justify-end gap-2 mt-6"><button data-act="closeModal" class="${btnCls}">Cancel</button><button data-act="saveNew" class="${btnPri}">${ic('check')}Add to library</button></div>`, true);
 }
+/* ---------- PDF import (PDF.js, runs entirely on the device) ---------- */
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let pdfjsP = null;
+function loadPdfJs() {
+  return pdfjsP || (pdfjsP = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = PDFJS + 'pdf.min.js';
+    s.onload = async () => {
+      try { const blob = await (await fetch(PDFJS + 'pdf.worker.min.js')).blob(); window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob); }
+      catch (e) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; }
+      res(window.pdfjsLib);
+    };
+    s.onerror = () => { pdfjsP = null; rej(new Error(L('Could not load the PDF reader — check your internet connection.', 'تعذّر تحميل قارئ PDF — تحقّق من اتصالك بالإنترنت.'))); };
+    document.head.appendChild(s);
+  }));
+}
+const median = xs => { const a = xs.filter(x => isFinite(x)).sort((p, q) => p - q); return a.length ? a[Math.floor(a.length / 2)] : 0; };
+function pdfToText(pages, { dropRefs = true } = {}) {
+  // 1. Rebuild lines from positioned text items (keeps the PDF's reading order, so two-column layouts read column by column).
+  const P = pages.map((pg, pi) => {
+    const lines = []; let cur = null;
+    const push = () => { if (cur && cur.text.trim()) lines.push(cur); cur = null; };
+    for (const it of pg.items) {
+      if (!it || typeof it.str !== 'string') continue;
+      const x = it.transform[4], y = it.transform[5], hgt = Math.abs(it.transform[3]) || it.height || 10;
+      if (it.str === '') { if (it.hasEOL) push(); continue; }
+      if (cur && Math.abs(y - cur.y) <= Math.max(2, hgt * 0.45) && x >= cur.xEnd - hgt * 2) {
+        const gap = x - cur.xEnd;
+        cur.text += (gap > hgt * 0.12 && !/\s$/.test(cur.text) && !/^\s/.test(it.str) ? ' ' : '') + it.str;
+        cur.xEnd = Math.max(cur.xEnd, x + (it.width || 0)); cur.h = Math.max(cur.h, hgt);
+      } else { push(); cur = { text: it.str, x, y, xEnd: x + (it.width || 0), h: hgt, page: pi }; }
+      if (it.hasEOL) push();
+    }
+    push();
+    lines.forEach(l => { l.text = l.text.replace(/\s+/g, ' ').trim(); });
+    return { lines: lines.filter(l => l.text), h: pg.h };
+  });
+  // 2. Remove running headers/footers (repeated at page edges) and bare page numbers.
+  const norm = t => t.toLowerCase().replace(/\d+/g, '#').replace(/\s+/g, ' ').trim();
+  const edge = (l, pg) => l.y > pg.h * 0.91 || l.y < pg.h * 0.09;
+  const counts = {};
+  P.forEach(pg => { const seen = new Set(); pg.lines.forEach(l => { if (edge(l, pg)) { const k = norm(l.text); if (!seen.has(k)) { seen.add(k); counts[k] = (counts[k] || 0) + 1; } } }); });
+  const minRep = Math.max(2, Math.ceil(P.length * 0.3));
+  P.forEach(pg => { pg.lines = pg.lines.filter(l => !(edge(l, pg) && (counts[norm(l.text)] >= minRep || /^(page\s*)?\d{1,4}(\s*(of|\/)\s*\d{1,4})?$/i.test(l.text)))); });
+  // 3. Group lines into paragraphs.
+  const all = P.flatMap(pg => pg.lines);
+  const gaps = []; for (let i = 1; i < all.length; i++) if (all[i].page === all[i - 1].page) { const d = all[i - 1].y - all[i].y; if (d > 0 && d < 60) gaps.push(d); }
+  const lh = median(gaps) || 12, bodyH = median(all.map(l => l.h)) || 10, lineW = median(all.map(l => l.xEnd - l.x)) || 300;
+  const paras = []; let buf = [];
+  const join = ls => ls.reduce((acc, t) => !acc ? t : (/\p{L}-$/u.test(acc) && /^\p{Ll}/u.test(t) ? acc.slice(0, -1) + t : acc + ' ' + t), '');
+  const flush = () => { if (buf.length) { paras.push(join(buf)); buf = []; } };
+  for (let i = 0; i < all.length; i++) {
+    const l = all[i], prev = all[i - 1];
+    if (prev) {
+      const dy = prev.y - l.y, samePlace = prev.page === l.page && dy > 0;
+      const ended = /[.!?:"”’)\]]$/.test(prev.text);
+      const expected = Math.max(lh, prev.h * 1.3);                                       // larger fonts (titles) have larger line spacing
+      const words = prev.text.split(/\s+/).length;
+      const heading = !ended && !/[-,;]$/.test(prev.text) && /^(\d+(\.\d+)*\.?\s+)?\p{Lu}/u.test(prev.text) && words <= 10 && (prev.xEnd - prev.x) < lineW * 0.75;
+      let brk = samePlace ? dy > expected * 1.45 : ended;                                // big gap, or a new column/page after a full stop
+      if (!brk && Math.abs(l.h - prev.h) > bodyH * 0.12) brk = true;                     // font-size change: headings, titles
+      if (!brk && heading) brk = true;                                                   // short capitalised line without punctuation: a heading
+      if (!brk && ended && samePlace && (prev.xEnd - prev.x) < lineW * 0.72) brk = true; // short last line of a paragraph
+      if (!brk && ended && samePlace && l.x > prev.x + bodyH * 1.1) brk = true;          // indented first line
+      if (brk) flush();
+    }
+    buf.push(l.text);
+  }
+  flush();
+  // 4. Optionally cut the reference list.
+  let out = paras.map(s => s.trim()).filter(s => s.length > 1), refsCut = false;
+  if (dropRefs) {
+    const isRefHead = s => /^(\d+\.?\s*)?(references|reference list|bibliography|works cited|literature cited|المراجع|قائمة المراجع)$/i.test(s.trim());
+    const idx = out.findIndex((s, i) => i >= out.length * 0.35 && isRefHead(s));
+    if (idx > -1) { out = out.slice(0, idx); refsCut = true; }
+  }
+  // Title guess: the largest text near the top of page 1.
+  const p1 = (P[0]?.lines || []).filter(l => l.y > (P[0].h * 0.35));
+  const maxH = Math.max(0, ...p1.map(l => l.h));
+  const titleLines = maxH > bodyH * 1.25 ? p1.filter(l => Math.abs(l.h - maxH) < 0.6) : [];
+  let titleGuess = titleLines.map(l => l.text).join(' ').replace(/\s+/g, ' ').trim();
+  if (titleGuess.length < 8 || titleGuess.length > 300) titleGuess = '';
+  let authorGuess = '';
+  if (titleLines.length) {
+    const last = titleLines[titleLines.length - 1]; const after = (P[0].lines).filter(l => l.y < last.y).slice(0, 3);
+    const cand = after.find(l => l.text.length < 200 && !/abstract|journal|doi|vol\.|university|department|@/i.test(l.text) && /^\p{Lu}/u.test(l.text));
+    if (cand) authorGuess = cand.text;
+  }
+  const firstPagesText = P.slice(0, 2).map(pg => pg.lines.map(l => l.text).join('\n')).join('\n');
+  return { paras: out, refsCut, titleGuess, authorGuess, firstPagesText, pages: P.length };
+}
+async function processPdf(file) {
+  const st = $('#pdf-status');
+  const say = (t, kind = '') => { if (st) { st.textContent = t; st.className = 'text-sm mt-2 min-h-[1.25rem] ' + (kind === 'err' ? 'text-rose-600' : kind === 'warn' ? 'text-amber-700 dark:text-amber-400' : kind === 'ok' ? 'text-emerald-700 dark:text-emerald-400' : 'text-ink-500'); } };
+  if (!file || !(/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name))) { say(L('That file is not a PDF.', 'هذا الملف ليس PDF.'), 'err'); return; }
+  MODAL.pdfName = file.name;
+  try {
+    say(L('Loading PDF reader…', 'جارٍ تحميل قارئ PDF…'));
+    const lib = await loadPdfJs();
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const pages = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      say(L(`Reading page ${i} of ${pdf.numPages}…`, `جارٍ قراءة الصفحة ${i} من ${pdf.numPages}…`));
+      const page = await pdf.getPage(i); const vp = page.getViewport({ scale: 1 });
+      pages.push({ items: (await page.getTextContent()).items, h: vp.height, w: vp.width });
+    }
+    const info = (await pdf.getMetadata().catch(() => null))?.info || {};
+    const r = pdfToText(pages, { dropRefs: $('#pdf-norefs')?.checked !== false });
+    const text = r.paras.join('\n\n'); const words = (text.match(/\S+/g) || []).length;
+    if (words < 80) { say(L('Almost no text found — this PDF is probably a scanned image without a text layer. Try a different copy of the article, or paste its text.', 'لم يُعثر على نص تقريباً — يبدو أن هذا الملف صور ممسوحة دون طبقة نص. جرّب نسخة أخرى من المقال، أو الصق نصه.'), 'warn'); return; }
+    const hm = heuristicMeta(r.firstPagesText);
+    const infoTitle = String(info.Title || '').trim();
+    const title = r.titleGuess || (infoTitle.length > 8 && !/^(microsoft word|untitled|document\d*)/i.test(infoTitle) ? infoTitle : '') || hm.title;
+    let authors = [];
+    const authStr = String(info.Author || '').trim();
+    if (authStr && authStr.length < 300 && !/^(user|admin|author|owner)$/i.test(authStr)) authors = parseAuthors(authStr.replace(/\s*,\s*(?=\p{Lu}[\p{L}.'-]+\s+\p{Lu})/gu, '; '));
+    if (!authors.length && r.authorGuess) authors = r.authorGuess.replace(/\d|\*|†|‡/g, '').split(/,|;|\band\b|&/).map(s => s.trim()).filter(s => /^\p{Lu}[\p{L}.'-]+(\s+[\p{L}.'-]+)+$/u.test(s)).map(s => { const p = s.split(/\s+/); return { family: p.pop(), given: p.join(' ') }; });
+    fillForm({ title, authors, year: hm.year, doi: hm.doi, abstract: hm.abstract, content: text });
+    const done = L(`Extracted ${r.pages} pages · ${words.toLocaleString('en-GB')} words`, `استُخرجت ${r.pages} صفحة · ${words.toLocaleString('en-GB')} كلمة`) + (r.refsCut ? L(' · reference list left out', ' · دون قائمة المراجع') : '');
+    const arNote = AR_RE.test(text) ? L(' Arabic PDFs can extract with broken word order — check the text.', ' ملفات PDF العربية قد تُستخرج بترتيب كلمات مضطرب — راجع النص.') : '';
+    if (hm.doi) {
+      say(done + L(' · completing details from Crossref…', ' · جارٍ استكمال البيانات من Crossref…'));
+      try { const c = await fetchCrossref(hm.doi); if (c) { fillForm({ ...c, abstract: c.abstract || hm.abstract, content: text }); say(done + L(' · details completed from Crossref (DOI found). Check the fields below.', ' · اكتملت البيانات من Crossref (وُجد DOI). راجع الحقول أدناه.') + arNote, arNote ? 'warn' : 'ok'); return; } } catch (e) {}
+    }
+    say(done + L('. No DOI found — check the title and authors below.', '. لم يُعثر على DOI — راجع العنوان والمؤلفين أدناه.') + arNote, arNote ? 'warn' : 'ok');
+  } catch (e) {
+    console.warn('[pdf]', e);
+    say(/password/i.test(e?.name || e?.message || '') ? L('This PDF is password-protected.', 'هذا الملف محمي بكلمة مرور.') : (e.message || String(e)), 'err');
+  }
+}
+// Drag a PDF anywhere onto the app to start adding it.
+const hasFiles = e => [...(e.dataTransfer?.types || [])].includes('Files');
+document.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); $('#pdf-drop')?.classList.add('border-accent-500', 'bg-accent-50'); });
+document.addEventListener('dragleave', e => { if (e.target?.id === 'pdf-drop') $('#pdf-drop').classList.remove('border-accent-500', 'bg-accent-50'); });
+document.addEventListener('drop', e => {
+  if (!hasFiles(e)) return; e.preventDefault();
+  const f = [...e.dataTransfer.files].find(x => /pdf$/i.test(x.type) || /\.pdf$/i.test(x.name));
+  if (!f || (SYNC_ON && !SESSION)) return;
+  if (MODAL.type !== 'add' || !$('#pdf-drop')) { UI.addTab = 'pdf'; openAddModal(); }
+  processPdf(f);
+});
 function fillForm(m) {
   const set = (k, v) => { const el = $('#f-' + k); if (el && v != null && v !== '') el.value = v; };
   set('title', m.title); set('year', m.year); set('journal', m.journal); set('volume', m.volume); set('issue', m.issue); set('pages', m.pages); set('doi', m.doi); set('url', m.url); set('abstract', m.abstract); set('content', m.content);
@@ -1949,6 +2104,7 @@ const A = {
   mDeleteNote: () => { const a = art(MODAL.aid); a.pageNotes = a.pageNotes.filter(x => x.id !== MODAL.id); save(); closeModal(); refreshAfterEdit(); },
   /* add article */
   addTab: t => { UI.addTab = t.dataset.t; openAddModal(); },
+  pdfPick: () => $('#pdf-input')?.click(),
   fPlatform: t => { const p = t.dataset.p; MODAL.platforms = MODAL.platforms.includes(p) ? MODAL.platforms.filter(x => x !== p) : [...MODAL.platforms, p]; t.classList.toggle('bg-accent-700'); t.classList.toggle('text-white'); t.classList.toggle('border-accent-700'); },
   fetchMeta: async t => {
     const v = $('#f-src').value.trim(); if (!v) return;
@@ -1973,7 +2129,7 @@ const A = {
   saveNew: () => {
     const g = k => ($('#f-' + k)?.value || '').trim();
     if (!g('title')) return toast('A title is required', 'error');
-    const a = mkArticle({ title: g('title'), authors: parseAuthors(g('authors')), year: g('year'), journal: g('journal'), volume: g('volume'), issue: g('issue'), pages: g('pages'), doi: (g('doi').match(DOI_RE) || [''])[0], url: g('url'), abstract: g('abstract'), content: g('content') || g('abstract'), platforms: MODAL.platforms });
+    const a = mkArticle({ title: g('title'), authors: parseAuthors(g('authors')), year: g('year'), journal: g('journal'), volume: g('volume'), issue: g('issue'), pages: g('pages'), doi: (g('doi').match(DOI_RE) || [''])[0], url: g('url'), abstract: g('abstract'), content: g('content') || g('abstract'), platforms: MODAL.platforms, pdfName: MODAL.pdfName || '' });
     S.articles.unshift(a); save(); closeModal(); openArticle(a.id); toast('Added to library');
   },
   /* synthesis */
@@ -2034,6 +2190,7 @@ document.addEventListener('change', e => {
   if (t.dataset.setting) { S.settings[t.dataset.setting] = t.type === 'checkbox' ? t.checked : t.value.trim(); save(); if (t.dataset.setting === 'serverClaude') { openSettings(); render(); } else if (UI.view === 'reader') renderPanel(); }
   if (t.dataset.colorHex != null) { S.colors[+t.dataset.colorHex].hex = t.value; save(); if (UI.view === 'reader') renderBody(); }
   if (t.dataset.colorName != null) { S.colors[+t.dataset.colorName].name = t.value.trim() || 'Untitled'; save(); if (UI.view !== 'reader') render(); else renderPanel(); }
+  if (t.id === 'pdf-input' && t.files[0]) { processPdf(t.files[0]); t.value = ''; }
   if (t.id === 'importfile' && t.files[0]) {
     const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.articles)) throw 0; if (SYNC_ON && SESSION && !confirm(L(`Replace your synced library (${S.articles.length} articles, on all devices) with this backup (${d.articles.length} articles)?`, `استبدال مكتبتك المتزامنة (${S.articles.length} مقالاً على كل الأجهزة) بهذه النسخة (${d.articles.length} مقالاً)؟`))) return; const key = S.settings.apiKey; S = d; S.settings = Object.assign({}, S.settings, { apiKey: key }); S.chats = S.chats || {}; save(); closeModal(); UI.view = 'library'; UI.articleId = null; render(); toast('Backup imported'); } catch (_) { toast('Not a valid backup file', 'error'); } }; r.readAsText(t.files[0]);
   }
