@@ -1,0 +1,17 @@
+{
+  "name": "Lectern — Doctoral Reading Lab",
+  "short_name": "Lectern",
+  "description": "Academic reading, highlighting and literature synthesis for doctoral research.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f6f9",
+  "theme_color": "#3730a3",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

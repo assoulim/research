@@ -1,0 +1,1996 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lectern — Doctoral Reading Lab</title>
+<meta name="description" content="Academic reading management, literature synthesis and doctoral research tracking for Digital Media research.">
+<meta name="theme-color" content="#3730a3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lectern">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Noto+Naskh+Arabic:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  try { if (localStorage.getItem('lectern.lang') === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; } } catch (e) {}
+  try { const t = localStorage.getItem('lectern.theme'); if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark'); } catch (e) {}
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  if (window.tailwind) tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'], serif: ['"Source Serif 4"','Georgia','serif'], arabic: ['"Noto Naskh Arabic"','serif'] },
+      colors: { ink: { 50:'#f6f6f9',100:'#ececf2',200:'#d5d6e2',300:'#b0b2c8',400:'#8588a8',500:'#65688c',600:'#505273',700:'#41435e',800:'#383a4f',900:'#1f2030',950:'#14151f' },
+                accent: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3' } }
+    } }
+  };
+</script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+  :root { --hdr: 57px; }
+  html, body { -webkit-tap-highlight-color: transparent; }
+  body { font-feature-settings: "cv11", "ss01"; }
+  .reader-p { font-family: "Source Serif 4", Georgia, serif; font-size: 1.125rem; line-height: 1.85; margin: 0 0 1.25rem; hyphens: auto; scroll-margin-top: 130px; }
+  .reader-lg .reader-p { font-size: 1.25rem; }
+  .reader-sm .reader-p { font-size: 1rem; }
+  mark.hl { background: color-mix(in srgb, var(--hl) 38%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; cursor: pointer; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--hl) 85%, transparent); scroll-margin-top: 140px; transition: background .2s; }
+  .dark mark.hl { background: color-mix(in srgb, var(--hl) 30%, transparent); }
+  mark.hl:hover { background: color-mix(in srgb, var(--hl) 55%, transparent); }
+  mark.hl.has-note::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background: var(--hl); margin-left: 2px; vertical-align: super; }
+  .flash { animation: flash 2.2s ease-out 1; }
+  @keyframes flash { 0%,30% { outline: 3px solid #6366f1; outline-offset: 3px; } 100% { outline: 3px solid transparent; outline-offset: 3px; } }
+  .para-tools { opacity: 0; transition: opacity .15s; }
+  .para:hover .para-tools { opacity: 1; }
+  @media (hover: none) { .para-tools { opacity: .55; } }
+  .ar { font-family: "Noto Naskh Arabic", serif; line-height: 2; }
+  .scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: rgba(120,120,150,.35); border-radius: 8px; }
+  .chat-md p { margin: .35rem 0; } .chat-md ul { list-style: disc; padding-inline-start: 1.2rem; margin: .35rem 0; } .chat-md ol { list-style: decimal; padding-inline-start: 1.2rem; margin: .35rem 0; }
+  .chat-md blockquote { border-inline-start: 3px solid #818cf8; padding-inline-start: .6rem; margin: .4rem 0; font-style: italic; opacity: .9; }
+  html[lang="ar"] body { font-family: "IBM Plex Sans Arabic", Inter, system-ui, sans-serif; }
+  html[lang="ar"] .uppercase { text-transform: none; letter-spacing: 0; }
+  html[lang="ar"] [data-raw][dir="auto"]:lang(ar), .ar-ui { line-height: 1.9; }
+  [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+  @media (max-width: 1023.98px) { [dir="rtl"] #panel.translate-x-full { transform: translateX(-100%); } }
+  .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { scrollbar-width: none; }
+  textarea { field-sizing: content; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+</style>
+</head>
+<body class="bg-ink-50 text-ink-900 dark:bg-ink-950 dark:text-ink-100 font-sans antialiased min-h-screen">
+
+<!-- Header -->
+<header class="sticky top-0 z-30 h-[57px] border-b border-ink-200/80 dark:border-ink-800 bg-white/85 dark:bg-ink-950/85 backdrop-blur flex items-center gap-2 sm:gap-3 px-3 sm:px-5">
+  <button data-act="nav" data-view="library" class="flex items-center gap-2 shrink-0" title="Library">
+    <span class="w-8 h-8 rounded-lg bg-accent-700 text-white grid place-items-center"><i data-lucide="book-marked" class="w-4 h-4"></i></span>
+    <span class="hidden sm:block leading-tight text-start"><span data-raw class="block font-semibold text-[15px] tracking-tight">Lectern</span><span class="block text-[11px] text-ink-500 dark:text-ink-400">Doctoral Reading Lab · Digital Media</span></span>
+  </button>
+  <div class="flex-1 max-w-xl mx-auto relative">
+    <i data-lucide="search" class="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-400"></i>
+    <input id="gsearch" type="search" placeholder="Search articles, abstracts, quotes, notes…  ( / )" class="w-full h-10 ps-9 pe-3 rounded-xl bg-ink-100/80 dark:bg-ink-900 border border-transparent focus:border-accent-400 focus:bg-white dark:focus:bg-ink-900 outline-none text-sm placeholder:text-ink-400" autocomplete="off">
+  </div>
+  <button data-act="openAdd" class="h-10 px-3 rounded-xl bg-accent-700 hover:bg-accent-800 text-white text-sm font-medium flex items-center gap-1.5 shrink-0"><i data-lucide="plus" class="w-4 h-4"></i><span class="hidden sm:inline">Add article</span></button>
+  <button id="syncbtn" data-act="syncNow" class="hidden h-10 w-10 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center shrink-0" title="Sync"></button>
+  <button data-act="toggleLang" class="h-10 min-w-10 px-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center shrink-0" title="Language / اللغة"><span id="langlbl" data-raw class="text-sm font-semibold">ع</span></button>
+  <button data-act="toggleTheme" class="h-10 w-10 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center shrink-0" title="Light / dark mode"><i data-lucide="sun-moon" class="w-5 h-5"></i></button>
+  <button data-act="openSettings" class="h-10 w-10 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center shrink-0" title="Settings"><i data-lucide="settings-2" class="w-5 h-5"></i></button>
+</header>
+
+<div class="flex">
+  <!-- Side rail (tablet/desktop) -->
+  <nav id="rail" class="hidden md:flex flex-col gap-1 w-[76px] shrink-0 sticky top-[57px] h-[calc(100vh-57px)] border-r border-ink-200/80 dark:border-ink-800 py-3 items-center bg-white/60 dark:bg-ink-950"></nav>
+  <main id="main" class="flex-1 min-w-0 pb-24 md:pb-0"></main>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav id="bottomnav" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-ink-950/95 backdrop-blur border-t border-ink-200 dark:border-ink-800 flex justify-around safe-bottom"></nav>
+
+<!-- Selection toolbar -->
+<div id="seltool" class="hidden fixed z-50 rounded-2xl shadow-xl border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1.5 flex items-center gap-1" onmousedown="event.preventDefault()"></div>
+
+<div id="modal-root"></div>
+<div id="toast" class="fixed z-[70] left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 pointer-events-none"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   Lectern — single-file doctoral reading manager
+   State lives in localStorage (key: lectern.state.v1).
+   ========================================================= */
+
+/* ---------- Utilities ---------- */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (n, c = 'w-4 h-4') => `<i data-lucide="${n}" class="${c}"></i>`;
+const LS = 'lectern.state.v1';
+const DOI_RE = /10\.\d{4,9}\/[^\s"<>]+/i;
+const AR_RE = /[\u0600-\u06FF]/;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? '' : `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+const fmtShort = iso => { const d = new Date(iso); if (isNaN(d)) return ''; if (LANG === 'ar') { try { return new Intl.DateTimeFormat('ar-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' }).format(d); } catch (e) {} } return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}`; };
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const paraList = a => String(a.content || '').split(/\n\s*\n/).map(p => p.replace(/\s+/g, ' ').trim()).filter(Boolean);
+const splitSentences = t => (t.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+["')\]]?|$)/g) || []).map(s => s.trim()).filter(s => s.length > 25);
+
+/* ---------- i18n (English / Arabic) ---------- */
+let LANG = (() => { try { return localStorage.getItem('lectern.lang') === 'ar' ? 'ar' : 'en'; } catch (e) { return 'en'; } })();
+const L = (en, ar) => LANG === 'ar' ? ar : en;
+const AR = /*AR_DICT*/{
+"Account & sync": "الحساب والمزامنة",
+"Check your email to confirm your account, then sign in here.": "تفقّد بريدك لتأكيد حسابك، ثم سجّل الدخول من هنا.",
+"Create account": "إنشاء الحساب",
+"Create your account": "أنشئ حسابك",
+"Email": "البريد الإلكتروني",
+"Enter your email first.": "أدخل بريدك الإلكتروني أولاً.",
+"First time? Create your account": "أول مرة؟ أنشئ حسابك",
+"Forgot password?": "نسيت كلمة المرور؟",
+"Have an account? Sign in": "لديك حساب؟ سجّل الدخول",
+"Interface language, theme and reading size are set per device; everything else syncs.": "لغة الواجهة والسمة وحجم الخط تُضبط لكل جهاز على حدة، وكل ما عداها يُزامَن.",
+"Last synced": "آخر مزامنة",
+"Not synced yet": "لم تتم المزامنة بعد",
+"Offline — changes are kept on this device": "دون اتصال — التغييرات محفوظة على هذا الجهاز",
+"You are offline — changes are kept on this device": "أنت دون اتصال — التغييرات محفوظة على هذا الجهاز",
+"Password": "كلمة المرور",
+"Password reset link sent — check your email.": "أُرسل رابط إعادة تعيين كلمة المرور — تفقّد بريدك.",
+"Runs through your private server function. The API key lives on the server and never reaches the browser.": "يعمل عبر دالة الخادم الخاصة بك؛ مفتاح API محفوظ على الخادم ولا يصل إلى المتصفح أبداً.",
+"Sign in": "تسجيل الدخول",
+"Sign in to your library": "سجّل الدخول إلى مكتبتك",
+"Sign out": "تسجيل الخروج",
+"Sync": "المزامنة",
+"Sync error — tap to retry": "خطأ في المزامنة — انقر لإعادة المحاولة",
+"Sync now": "زامن الآن",
+"Synced — tap to sync again": "متزامن — انقر للمزامنة مجدداً",
+"Syncing…": "جارٍ المزامنة…",
+"Test connection": "اختبار الاتصال",
+"Your articles, highlights and notes stay in sync across all your devices.": "مقالاتك وتظليلاتك وملاحظاتك متزامنة على كل أجهزتك.",
+"Invalid login credentials": "بيانات الدخول غير صحيحة",
+"Email not confirmed": "لم يُؤكَّد البريد الإلكتروني بعد — تفقّد رسالة التأكيد",
+"User already registered": "هذا البريد مسجّل مسبقاً — سجّل الدخول",
+"Signups not allowed for this instance": "التسجيل مغلق في هذا المشروع",
+"Failed to fetch": "تعذّر الاتصال بالخادم",
+"Not signed in": "لم تسجّل الدخول",
+
+"Library": "المكتبة",
+"Reader": "القارئ",
+"Synthesis": "التوليف",
+"Search": "البحث",
+"Settings": "الإعدادات",
+"Doctoral Reading Lab · Digital Media": "مختبر القراءة الدكتورالية · الإعلام الرقمي",
+"Search articles, abstracts, quotes, notes…  ( / )": "ابحث في المقالات والملخصات والاقتباسات والملاحظات…  ( / )",
+"Add article": "إضافة مقال",
+"Light / dark mode": "الوضع الفاتح / الداكن",
+"Back to library": "العودة إلى المكتبة",
+"Reference list": "قائمة المراجع",
+"Reference list (filtered)": "قائمة المراجع (المُصفّاة)",
+"Studied platform": "المنصة المدروسة",
+"All": "الكل",
+"Filter by title, author, journal…": "صفِّ حسب العنوان أو المؤلف أو المجلة…",
+"All subject & method tags": "كل وسوم الموضوع والمنهج",
+"Sort: Recently opened": "الترتيب: الأحدث فتحاً",
+"Sort: Relevance rating": "الترتيب: تقييم الصلة",
+"Sort: Year (newest)": "الترتيب: السنة (الأحدث)",
+"Sort: First author": "الترتيب: المؤلف الأول",
+"Sort: Title": "الترتيب: العنوان",
+"No articles match these filters.": "لا توجد مقالات تطابق هذه المرشّحات.",
+"Clear filters": "مسح المرشّحات",
+"No articles yet.": "لا توجد مقالات بعد.",
+"Sample": "نموذج",
+"Fictional demo article": "مقال توضيحي متخيَّل",
+"To Read": "للقراءة",
+"Skimmed": "تصفّح سريع",
+"AI Summarized": "ملخَّص آلياً",
+"Full Read": "قراءة كاملة",
+"Podcasts": "البودكاست",
+"News Outlets": "المنافذ الإخبارية",
+"Multi-platform": "متعدد المنصات",
+"Core Argument": "الحجة المحورية",
+"Methodology": "المنهجية",
+"Empirical Evidence": "الأدلة التجريبية",
+"Theoretical Framework": "الإطار النظري",
+"Reading size": "حجم الخط",
+"Tools": "الأدوات",
+"Open via EZproxy": "فتح عبر EZproxy",
+"Edit full text": "تحرير النص الكامل",
+"Abstract": "الملخص",
+"Cite this": "توثيق المقال",
+"Translate": "ترجمة",
+"Translate paragraph (EN ⇄ AR)": "ترجمة الفقرة (EN ⇄ AR)",
+"Translate EN ⇄ AR": "ترجمة EN ⇄ AR",
+"Arabic translation": "الترجمة العربية",
+"English translation": "الترجمة الإنجليزية",
+"No full text yet. Open the article via EZproxy, copy the text, and paste it in": "لا يوجد نص كامل بعد. افتح المقال عبر EZproxy، وانسخ النص، ثم الصقه في",
+"Highlight + note": "تظليل مع ملاحظة",
+"Copy with citation": "نسخ مع التوثيق",
+"Highlights work within one paragraph": "التظليل يعمل داخل فقرة واحدة",
+"Details": "التفاصيل",
+"Summary": "الملخص",
+"Quotes": "الاقتباسات",
+"Cite": "التوثيق",
+"Assistant": "المساعد",
+"Reading status": "حالة القراءة",
+"Relevance": "الصلة",
+"Studied platform(s)": "المنصات المدروسة",
+"Subject / topic tags": "وسوم الموضوع",
+"Methodological tags": "الوسوم المنهجية",
+"Add subject tag + Enter": "أضف وسم موضوع + Enter",
+"Add method tag + Enter": "أضف وسماً منهجياً + Enter",
+"Critical commentary & reflections": "التعليق النقدي والتأملات",
+"Where does this sit in your argument? What would you push back on?": "أين يقع هذا من حجتك؟ وما الذي تعترض عليه؟",
+"Bibliographic metadata": "البيانات الببليوغرافية",
+"Title": "العنوان",
+"Title *": "العنوان *",
+"Authors (Family, Given; …)": "المؤلفون (العائلة، الاسم؛ …)",
+"Authors (Family, Given; Family, Given)": "المؤلفون (العائلة، الاسم؛ العائلة، الاسم)",
+"Year": "السنة",
+"Vol.": "المجلد",
+"Volume": "المجلد",
+"Issue": "العدد",
+"Journal / Source": "المجلة / المصدر",
+"Pages": "الصفحات",
+"DOI": "DOI",
+"URL": "الرابط",
+"Delete": "حذف",
+"Summarise with Claude": "تلخيص عبر Claude",
+"Summarising…": "جارٍ التلخيص…",
+"Offline extract": "استخلاص دون اتصال",
+"Offline heuristic — verify": "استخلاص آلي دون اتصال — تحقّق منه",
+"Edited by you": "عدّلتَه بنفسك",
+"Claude": "Claude",
+"No Claude API key set — \"Summarise with Claude\" needs one (Settings). The offline extract selects cue sentences from the text; it does not interpret.": "لم يُضبط مفتاح Claude API — يحتاجه «تلخيص عبر Claude» (الإعدادات). الاستخلاص دون اتصال ينتقي جملاً مفتاحية من النص ولا يؤوّلها.",
+"Core research idea / main thesis": "الفكرة البحثية المحورية / الأطروحة الرئيسة",
+"Research questions": "أسئلة البحث",
+"Methodology & data set": "المنهجية ومجموعة البيانات",
+"Key findings & empirical results": "النتائج الرئيسة والنتائج التجريبية",
+"Research gap addressed": "الفجوة البحثية المعالَجة",
+"Copy": "نسخ",
+"Copy summary as Markdown": "نسخ الملخص بصيغة Markdown",
+"Add a note to the whole article": "أضف ملاحظة على المقال كاملاً",
+"Overall reflection, link to your chapters…": "تأمل عام، أو ربط بفصول أطروحتك…",
+"Add note": "إضافة ملاحظة",
+"Article note": "ملاحظة على المقال",
+"Select text in the reader to highlight it.": "حدّد نصاً في القارئ لتظليله.",
+"Copy as Markdown": "نسخ بصيغة Markdown",
+"Synthesis view": "عرض التوليف",
+"Source": "المصدر",
+"Jump to source": "الانتقال إلى المصدر",
+"Edit": "تحرير",
+"Open": "فتح",
+"University of Sheffield Harvard — the Library bases it on": "هارفارد جامعة شيفيلد — تبنيه المكتبة على",
+"Cite Them Right": "Cite Them Right",
+". Check edge cases against the": ". راجِع الحالات الدقيقة في",
+"Library’s current guide": "الدليل الحالي للمكتبة",
+"Reference list entry": "مدخل قائمة المراجع",
+"In-text (parenthetical)": "توثيق داخل النص (بين قوسين)",
+"In-text (narrative)": "توثيق داخل النص (سردي)",
+"Direct quotation — page number": "اقتباس مباشر — رقم الصفحة",
+"e.g. 214": "مثال: 214",
+"Copy (Author, Year, p. X)": "نسخ (المؤلف، السنة، p. X)",
+"List every author in the reference (4+ authors) instead of “et al.”": "اذكر جميع المؤلفين في المرجع (4 فأكثر) بدلاً من «et al.»",
+"Incomplete metadata": "بيانات وصفية ناقصة",
+"Edit metadata": "تحرير البيانات الوصفية",
+"No authors": "لا مؤلفين",
+"No year — renders as \"(no date)\"": "لا سنة — تظهر بصيغة \"(no date)\"",
+"No journal title": "لا عنوان للمجلة",
+"No volume (fine for online-first articles)": "لا مجلد (مقبول للمقالات المنشورة إلكترونياً أولاً)",
+"No page range": "لا نطاق صفحات",
+"No DOI or URL": "لا DOI ولا رابط",
+"Offline mode": "وضع دون اتصال",
+"Clear": "مسح",
+"Analyse methodology": "تحليل المنهجية",
+"Identify research gap": "تحديد الفجوة البحثية",
+"Synthesise with library": "التوليف مع المكتبة",
+"Draft lit-review paragraph": "مسودة فقرة مراجعة أدبيات",
+"Supervisor mode": "وضع المشرف",
+"Reads this article’s text, your highlights and notes. Without an API key, replies are assembled from your own library data.": "يقرأ نص المقال وتظليلاتك وملاحظاتك. دون مفتاح API تُبنى الردود من بيانات مكتبتك.",
+"Reads this article’s text, your highlights and notes.": "يقرأ نص المقال وتظليلاتك وملاحظاتك.",
+"Thinking…": "جارٍ التفكير…",
+"Ask about this article…": "اسأل عن هذا المقال…",
+"Offline · built from your library data": "دون اتصال · مبني من بيانات مكتبتك",
+"Synthesis hub": "مركز التوليف",
+"Aggregate quotes and notes per article, or across articles by research theme. Click any quote to jump to its source.": "اجمع الاقتباسات والملاحظات لكل مقال، أو عبر المقالات حسب المحور البحثي. انقر أي اقتباس للانتقال إلى موضعه في المصدر.",
+"By theme": "حسب المحور",
+"By article": "حسب المقال",
+"Research themes": "المحاور البحثية",
+"New theme…": "محور جديد…",
+"Describe this theme in relation to your thesis…": "صِف هذا المحور في علاقته بأطروحتك…",
+"Draft synthesis": "مسودة توليف",
+"Draft synthesis (offline scaffold)": "مسودة توليف (هيكل أولي دون اتصال)",
+"Draft synthesis (Claude)": "مسودة توليف (Claude)",
+"Markdown": "Markdown",
+"Delete theme": "حذف المحور",
+"No quotes in this theme yet. Open a highlight (in the reader or any quote list) and tag it with": "لا اقتباسات في هذا المحور بعد. افتح أي تظليل (في القارئ أو في قوائم الاقتباسات) واوسمه بـ",
+"Create your first research theme on the left.": "أنشئ أول محور بحثي من القائمة الجانبية.",
+"Open reader": "فتح القارئ",
+"Article notes": "ملاحظات المقال",
+"None yet.": "لا شيء بعد.",
+"Critical commentary": "التعليق النقدي",
+"Thesis": "الأطروحة",
+"Gap": "الفجوة",
+"No highlights in this article yet.": "لا تظليلات في هذا المقال بعد.",
+"Type at least two characters in the search bar. Searches titles, authors, abstracts, full texts, highlights, notes and summaries.": "اكتب حرفين على الأقل في شريط البحث. يشمل البحث العناوين والمؤلفين والملخصات والنصوص الكاملة والتظليلات والملاحظات والملخصات البنيوية.",
+"Articles": "المقالات",
+"Highlighted quotes": "الاقتباسات المظلّلة",
+"Notes & summaries": "الملاحظات والملخصات",
+"Full text": "النص الكامل",
+"Highlight": "تظليل",
+"Category": "الفئة",
+"Note": "ملاحظة",
+"Why does this matter for your argument?": "لماذا يهم هذا لحجتك؟",
+"Page": "الصفحة",
+"p.": "ص.",
+"Citation": "التوثيق",
+"Research themes (cross-article synthesis)": "المحاور البحثية (توليف عبر المقالات)",
+"Save": "حفظ",
+"Add an article": "إضافة مقال",
+"DOI look-up uses Crossref’s open API. Paywalled full text can’t be fetched from the browser — open it via EZproxy and paste the text.": "البحث بـ DOI يستخدم واجهة Crossref المفتوحة. لا يمكن جلب النص الكامل المحجوب باشتراك من المتصفح — افتحه عبر EZproxy والصق النص.",
+"DOI / URL": "DOI / رابط",
+"Paste text": "لصق نص",
+"Fetch": "جلب",
+"Fetching": "جارٍ الجلب",
+"Extracting": "جارٍ الاستخلاص",
+"10.1177/14614448… or https://doi.org/… or article URL": "10.1177/14614448… أو https://doi.org/… أو رابط المقال",
+"Paste the article text (title, authors, abstract, body)…": "الصق نص المقال (العنوان، المؤلفون، الملخص، المتن)…",
+"Extract metadata (offline)": "استخلاص البيانات (دون اتصال)",
+"Extract with Claude": "استخلاص عبر Claude",
+"Full text (paragraphs separated by a blank line)": "النص الكامل (افصل الفقرات بسطر فارغ)",
+"Optional now — you can add it later from the reader.": "اختياري الآن — يمكنك إضافته لاحقاً من القارئ.",
+"Cancel": "إلغاء",
+"Add to library": "إضافة إلى المكتبة",
+"EZproxy link:": "رابط EZproxy:",
+"Language": "اللغة",
+"Interface": "الواجهة",
+"Claude output language": "لغة مخرجات Claude",
+"English": "الإنجليزية",
+"Arabic": "العربية",
+"Article texts, quotes and references always stay in their original language.": "نصوص المقالات والاقتباسات والمراجع تبقى دائماً بلغتها الأصلية.",
+"Highlighter categories": "فئات التظليل",
+"Rename or recolour; existing highlights follow.": "غيّر الاسم أو اللون، وتتبعه التظليلات الحالية.",
+"Remove": "إزالة",
+"Add category": "إضافة فئة",
+"University of Sheffield library access": "الوصول إلى مكتبة جامعة شيفيلد",
+"EZproxy prefix": "بادئة EZproxy",
+"Prepended to DOI/URL links. The default follows the OCLC-hosted pattern most UK libraries use — confirm the exact prefix with the": "تُضاف قبل روابط DOI والروابط الأخرى. القيمة الافتراضية تتبع نمط OCLC الذي تستخدمه معظم الجامعات البريطانية — تأكد من البادئة الدقيقة لدى",
+"Claude (summaries, translation, assistant)": "Claude (الملخصات، الترجمة، المساعد)",
+"Anthropic API key": "مفتاح Anthropic API",
+"Model": "النموذج",
+"Called directly from your browser; the key is stored in this browser’s localStorage only. Use a key with a spend limit, and don’t use this on shared machines.": "يُستدعى مباشرة من متصفحك، ويُحفظ المفتاح في localStorage لهذا المتصفح فقط. استخدم مفتاحاً بحدّ إنفاق، ولا تستخدمه على أجهزة مشتركة.",
+"Data": "البيانات",
+"Export backup (.json)": "تصدير نسخة احتياطية (.json)",
+"Import backup": "استيراد نسخة احتياطية",
+"Reset to samples": "إعادة الضبط إلى النماذج",
+"Separate paragraphs with a blank line. Highlights re-anchor by matching their quoted text.": "افصل الفقرات بسطر فارغ. تُعاد مواءمة التظليلات بمطابقة نصها المقتبس.",
+"Save text": "حفظ النص",
+"Academic translation": "ترجمة أكاديمية",
+"Add API key": "إضافة مفتاح API",
+"Open in Google Translate": "فتح في Google Translate",
+"Translating…": "جارٍ الترجمة…",
+"Working": "قيد العمل",
+"In-app translation runs through Claude and needs an API key (Settings → Claude). Without one, you can open the passage in Google Translate — less reliable for disciplinary terminology.": "الترجمة داخل التطبيق تعمل عبر Claude وتحتاج إلى مفتاح API (الإعدادات ← Claude). من دونه يمكنك فتح المقطع في Google Translate، وهو أقل دقة في المصطلحات التخصصية.",
+"Copy list": "نسخ القائمة",
+"A title is required": "العنوان مطلوب",
+"Add a Claude API key in Settings first": "أضف مفتاح Claude API في الإعدادات أولاً",
+"Added to library": "أُضيف إلى المكتبة",
+"Article deleted": "حُذف المقال",
+"Backup exported (API key excluded)": "صُدّرت النسخة الاحتياطية (دون مفتاح API)",
+"Backup imported": "استُوردت النسخة الاحتياطية",
+"Best-guess extraction — check every field": "استخلاص تقريبي — راجِع كل حقل",
+"Copied to clipboard": "نُسخ إلى الحافظة",
+"Cue sentences extracted — verify before use": "استُخلصت الجمل المفتاحية — تحقّق منها قبل الاستخدام",
+"DOI found — metadata completed from Crossref": "عُثر على DOI — اكتملت البيانات من Crossref",
+"Full text saved": "حُفظ النص الكامل",
+"Highlight removed": "أُزيل التظليل",
+"Highlight saved": "حُفظ التظليل",
+"Metadata extracted": "استُخلصت البيانات الوصفية",
+"Metadata retrieved from Crossref": "جُلبت البيانات الوصفية من Crossref",
+"No DOI detected — fill in the details manually": "لم يُرصد DOI — أدخل البيانات يدوياً",
+"No quotes in this theme yet": "لا اقتباسات في هذا المحور بعد",
+"Not a valid Lectern backup": "ليست نسخة احتياطية صالحة لـ Lectern",
+"Note added": "أُضيفت الملاحظة",
+"Overlaps an existing highlight — edit that one instead.": "يتداخل مع تظليل موجود — حرّر ذلك التظليل بدلاً منه.",
+"Paste some text first": "الصق نصاً أولاً",
+"Storage is full — export a backup in Settings.": "التخزين ممتلئ — صدّر نسخة احتياطية من الإعدادات.",
+"Summary generated": "أُنشئ الملخص",
+"DOI not found in Crossref": "لم يُعثر على DOI في Crossref",
+"Unexpected response format": "صيغة استجابة غير متوقعة"
+};
+const AR_PATTERNS = /*AR_PATTERNS*/[
+  [/^(\d+) articles · (\d+) quotes · (\d+) research themes$/, (m, a, b, c) => `${a} مقال · ${b} اقتباس · ${c} محاور بحثية`],
+  [/^All (\d+)$/, (m, n) => `الكل ${n}`],
+  [/^All quotes \((\d+)\)$/, (m, n) => `كل الاقتباسات (${n})`],
+  [/^(\d+) items · (\d+) articles?$/, (m, a, b) => `${a} عنصر · ${b} مقال`],
+  [/^(\d+) items$/, (m, n) => `${n} عنصر`],
+  [/^(\d+) sources$/, (m, n) => `${n} مصادر`],
+  [/^(\d+) unassigned quotes$/, (m, n) => `${n} اقتباس غير مصنَّف`],
+  [/^(\d+) results? for “(.*)”$/, (m, n, q) => `${n} نتيجة لـ «${q}»`],
+  [/^(\d+) entries, alphabetical · University of Sheffield Harvard\. Copy keeps italics when pasted into Word\.$/, (m, n) => `${n} مدخلات مرتبة أبجدياً · هارفارد جامعة شيفيلد. يحتفظ النسخ بالخط المائل عند اللصق في Word.`],
+  [/^Platforms: (.*)$/, (m, x) => `المنصات: ${x.split(', ').map(tr).join('، ')}`],
+  [/^Added (.*)$/, (m, d) => `أُضيف في ${d}`],
+  [/^Shortcut: select text, press (\d)$/, (m, n) => `اختصار: حدّد النص واضغط ${n}`],
+  [/^Live · (.*)$/, (m, x) => `متصل · ${x}`],
+  [/^Summary · (.*)$/, (m, x) => `الملخص · ${tr(x)}`],
+  [/^• (.*)$/, (m, x) => `• ${tr(x)}`],
+  [/^Highlighted · (.*)$/, (m, x) => `ظُلِّل · ${tr(x)}`],
+  [/^(Summary|Translation|Draft|Extraction) failed: (.*)$/, (m, k, e) => `${({ Summary: 'تعذّر التلخيص', Translation: 'تعذّرت الترجمة', Draft: 'تعذّرت المسودة', Extraction: 'تعذّر الاستخلاص' })[k]}: ${e}`],
+  [/^Crossref error (\d+)$/, (m, n) => `خطأ من Crossref: ${n}`],
+  [/^(.+) \((\d)\)$/, (m, x, n) => AR[x] ? `${AR[x]} (${n})` : null],
+  [/^(.+): (\d+)$/, (m, x, n) => AR[x] ? `${AR[x]}: ${n}` : null],
+  [/^(.+) (\d+)$/, (m, x, n) => AR[x] ? `${AR[x]} ${n}` : null],
+];
+function tr(s) {
+  if (LANG !== 'ar' || !s) return s;
+  const k = String(s).trim(); if (!k || AR_RE.test(k)) return s;
+  let v = AR[k];
+  if (v == null) for (const [re, f] of AR_PATTERNS) { const m = k.match(re); if (m) { v = typeof f === 'function' ? f(...m) : k.replace(re, f); if (v != null) break; } }
+  return v == null ? s : String(s).replace(k, v);
+}
+function translateDOM(root) {
+  if (!root) return;
+  root.querySelectorAll('input:not([type]),input[type=text],input[type=search],textarea').forEach(el => { if (!el.hasAttribute('dir')) el.setAttribute('dir', 'auto'); });
+  if (LANG !== 'ar') return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('[data-raw],script,style,textarea,code') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const ns = []; while (w.nextNode()) ns.push(w.currentNode);
+  ns.forEach(n => { const v = tr(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; });
+  root.querySelectorAll('[placeholder],[title]').forEach(el => { if (el.closest('[data-raw]')) return; for (const at of ['placeholder', 'title']) if (el.hasAttribute(at)) { const v = tr(el.getAttribute(at)); if (v !== el.getAttribute(at)) el.setAttribute(at, v); } });
+}
+const COLOR_NAMES = {
+  en: { yellow: 'Core Argument', green: 'Methodology', pink: 'Empirical Evidence', blue: 'Theoretical Framework' },
+  ar: { yellow: 'الحجة المحورية', green: 'المنهجية', pink: 'الأدلة التجريبية', blue: 'الإطار النظري' },
+};
+function switchLang(l) {
+  if (l === LANG) return;
+  S.colors.forEach(c => { if (COLOR_NAMES[LANG][c.key] && c.name === COLOR_NAMES[LANG][c.key]) c.name = COLOR_NAMES[l][c.key]; });
+  save(); try { localStorage.setItem('lectern.lang', l); } catch (e) {}
+  location.reload();
+}
+
+/* ---------- Constants ---------- */
+const DEFAULT_COLORS = [
+  { key: 'yellow', name: 'Core Argument', hex: '#facc15' },
+  { key: 'green', name: 'Methodology', hex: '#22c55e' },
+  { key: 'pink', name: 'Empirical Evidence', hex: '#ec4899' },
+  { key: 'blue', name: 'Theoretical Framework', hex: '#3b82f6' },
+];
+const PLATFORMS = ['TikTok', 'X/Twitter', 'YouTube', 'Instagram', 'Facebook', 'Telegram', 'Podcasts', 'News Outlets', 'Multi-platform'];
+const PLATFORM_ICON = { 'TikTok': 'music-2', 'X/Twitter': 'at-sign', 'YouTube': 'youtube', 'Instagram': 'instagram', 'Facebook': 'facebook', 'Telegram': 'send', 'Podcasts': 'podcast', 'News Outlets': 'newspaper', 'Multi-platform': 'layers' };
+const STATUSES = ['To Read', 'Skimmed', 'AI Summarized', 'Full Read'];
+const STATUS_STYLE = {
+  'To Read': 'bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-300',
+  'Skimmed': 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
+  'AI Summarized': 'bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-300',
+  'Full Read': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
+};
+const SUBJECT_TAGS = ['Discourse Analysis', 'Political Communication', 'Platform Studies', 'Visual Framing', 'Algorithmic Culture', 'Creator Economy', 'Misinformation', 'Digital Activism', 'Arab Media', 'Audience Studies', 'Agenda-Setting', 'Platform Governance'];
+const METHOD_TAGS = ['Qualitative', 'Quantitative', 'Mixed Methods', 'Netnography', 'Critical Discourse Analysis', 'Content Analysis', 'Multimodal Analysis', 'Semi-structured Interviews', 'Computational Methods', 'Digital Ethnography', 'Survey', 'Case Study'];
+const PLATFORM_NOTES = {
+  'YouTube': 'View-count or trending-based sampling over-represents already-amplified channels; recommendation outputs are personalised, so researcher-side observation is not neutral.',
+  'TikTok': 'The For You feed is heavily personalised and research API access is restricted by region; manual chain reconstruction raises replicability questions.',
+  'X/Twitter': 'Post-2023 API pricing and access changes affect data completeness and replicability; check the collection window against those changes.',
+  'Instagram': 'Ephemeral formats (Stories) and Meta API limits often fall outside the corpus; visual-first content demands an explicit visual coding scheme.',
+  'Facebook': 'CrowdTangle’s closure (2024) and Meta Content Library access rules shape what can be collected and by whom.',
+  'Telegram': 'Public-channel sampling misses private group dynamics; snowball sampling via forwards biases toward networked channels.',
+  'Podcasts': 'Audio data requires transcription choices that are themselves interpretive; discovery is mediated by platform charts.',
+  'News Outlets': 'Outlet selection logic (reach, ideology, ownership) needs to be justified; paywalls can bias online corpora.',
+  'Multi-platform': 'Comparisons need a common unit of analysis across formats; platform affordances confound outlet or actor effects.',
+};
+const STOP = new Set('the and for that with this from have which their there about would into these those such were been being what when where how why who whom them they your our its are was can could should will also than then over more most some any each other only very just like does doing done between within across through while upon onto'.split(' '));
+
+/* ---------- Seed data (fictional sample articles) ---------- */
+function mkArticle(o) {
+  return Object.assign({
+    id: uid(), title: '', authors: [], year: '', journal: '', volume: '', issue: '', pages: '', doi: '', url: '',
+    abstract: '', content: '', status: 'To Read', rating: 0, platforms: [], subjectTags: [], methodTags: [],
+    critical: '', pageNotes: [], highlights: [], summary: { thesis: '', questions: '', methodology: '', findings: '', gap: '', source: '' },
+    translations: {}, sample: false, added: new Date().toISOString(), lastOpened: null
+  }, o);
+}
+function seedHL(a, phrase, color, note, topicIds) {
+  const ps = paraList(a);
+  for (let i = 0; i < ps.length; i++) {
+    const s = ps[i].indexOf(phrase);
+    if (s > -1) { a.highlights.push({ id: uid(), para: i, start: s, end: s + phrase.length, color, text: phrase, note: note || '', topicIds: topicIds || [], page: '', created: new Date().toISOString() }); return; }
+  }
+}
+function seed() {
+  const T = { alg: uid(), part: uid(), vis: uid(), meth: uid() };
+  const topics = [
+    { id: T.alg, name: 'Algorithmic Visibility', description: 'How ranking and recommendation systems shape what political content is made and seen.' },
+    { id: T.part, name: 'Participation & Dissent', description: 'Platform affordances as infrastructures of political participation.' },
+    { id: T.vis, name: 'Visual Framing', description: 'Images, thumbnails and visual grammar as framing devices.' },
+    { id: T.meth, name: 'Methods for Platform Research', description: 'Sampling, data access and analytic designs for platform-based studies.' },
+  ];
+  const a1 = mkArticle({
+    sample: true, title: 'Algorithmic Visibility and Political Vernaculars on YouTube: A Discourse-Historical Analysis of Arabic Commentary Channels',
+    authors: [{ family: 'Haddad', given: 'Layla' }, { family: 'Morrow', given: 'Peter J.' }], year: '2024', journal: 'Digital Discourse Review', volume: '12', issue: '3', pages: '211-236', doi: '',
+    abstract: 'This sample article examines how perceived algorithmic incentives on YouTube reshape the discursive strategies of Arabic-language political commentary channels, combining critical discourse analysis of videos with a qualitative analysis of comment sections.',
+    status: 'Full Read', rating: 5, platforms: ['YouTube'], subjectTags: ['Discourse Analysis', 'Political Communication', 'Arab Media', 'Algorithmic Culture'], methodTags: ['Critical Discourse Analysis', 'Qualitative'],
+    critical: 'Strong conceptual move ("disciplinary horizon"), but the sampling by view-count thresholds reproduces the very visibility logic under study. Useful anchor for Chapter 2.',
+    content: `Over the past decade, YouTube has become a central arena in which Arabic-speaking audiences encounter, contest and remix political commentary. Commentary channels, typically fronted by a single presenter addressing camera, occupy an ambiguous position between journalism, entertainment and activism.
+
+This article argues that algorithmic visibility on YouTube does not merely amplify pre-existing political discourse but actively reshapes its vernacular register, rewarding affective intensity, serialised confrontation and parasocial intimacy over deliberative argument.
+
+Although a substantial body of work has examined political communication on Western platforms, little is known about how recommendation systems shape the discursive strategies of Arabic-language creators. Existing studies tend to treat the Arab region either as a site of protest mobilisation or of state censorship, overlooking the everyday, monetised production of political commentary.
+
+We ask two research questions. RQ1: How do Arabic political commentary channels adapt their discursive strategies in response to perceived algorithmic incentives? RQ2: How do audiences negotiate the credibility of these channels within comment sections?
+
+Theoretically, the study draws on the Discourse-Historical Approach and on platform vernacular theory, which conceptualises platforms as generating distinctive grammars of communication shaped by affordances and user practices.
+
+Methodologically, we combine critical discourse analysis of 120 videos from 12 channels, sampled between January 2022 and June 2023, with a qualitative analysis of 6,400 top-level comments. Videos were selected using view-count thresholds and transcribed manually; comments were coded inductively in NVivo by two researchers, achieving acceptable inter-coder agreement.
+
+Our findings show that creators systematically foreground crisis framing in titles and thumbnails, deploy dialectal Arabic to signal authenticity, and serialise conflicts with rival creators to sustain engagement. Audiences, in turn, evaluate credibility less through sourcing than through perceived independence from state and commercial interests.
+
+These results suggest that algorithmic visibility functions as a disciplinary horizon: creators internalise imagined metrics, and political vernaculars converge around a recognisable repertoire of outrage, intimacy and exposure. We conclude by reflecting on the implications for platform governance and for comparative research on non-Western creator cultures.`
+  });
+  seedHL(a1, 'algorithmic visibility on YouTube does not merely amplify pre-existing political discourse but actively reshapes its vernacular register', 'yellow', 'Core claim — cite in Ch.2 framing section.', [T.alg]);
+  seedHL(a1, 'little is known about how recommendation systems shape the discursive strategies of Arabic-language creators', 'yellow', 'Gap statement that overlaps with my own.', [T.alg]);
+  seedHL(a1, 'platform vernacular theory, which conceptualises platforms as generating distinctive grammars of communication', 'blue', '', [T.alg]);
+  seedHL(a1, 'Videos were selected using view-count thresholds and transcribed manually', 'green', 'Sampling reproduces popularity bias — critique.', [T.meth]);
+  seedHL(a1, 'creators systematically foreground crisis framing in titles and thumbnails', 'pink', 'Link to visual framing literature (thumbnails).', [T.vis, T.alg]);
+  seedHL(a1, 'algorithmic visibility functions as a disciplinary horizon', 'yellow', '', [T.alg]);
+  a1.pageNotes.push({ id: uid(), text: 'Compare the "imagined metrics" argument with my interview data on creators’ folk theories of the algorithm.', topicIds: [T.alg], created: new Date().toISOString() });
+
+  const a2 = mkArticle({
+    sample: true, title: 'Duets as Dissent: Remix Affordances and Networked Answerability on TikTok',
+    authors: [{ family: 'Okafor', given: 'Chidi' }, { family: 'Lindqvist', given: 'Maja' }, { family: 'Reyes', given: 'Ana' }, { family: 'Patel', given: 'Sunita' }], year: '2023', journal: 'Journal of Platform Politics', volume: '5', issue: '2', pages: '44-69', doi: '',
+    abstract: 'This sample article proposes the concept of networked answerability to explain how TikTok’s duet and stitch features configure political participation among young users during electoral periods.',
+    status: 'Skimmed', rating: 4, platforms: ['TikTok'], subjectTags: ['Digital Activism', 'Political Communication', 'Platform Studies'], methodTags: ['Netnography', 'Multimodal Analysis', 'Semi-structured Interviews', 'Qualitative'],
+    content: `TikTok's duet and stitch features allow users to respond to existing videos by placing their own footage alongside or after the original. While often discussed as playful tools of memetic culture, these features have increasingly been mobilised for political commentary and dissent.
+
+In this paper we contend that remix affordances constitute a distinct mode of political participation, one we term networked answerability, in which users perform accountability by visibly responding to political actors and to each other.
+
+Few studies have examined how participatory affordances specific to short-video platforms structure political expression; research on TikTok politics remains dominated by content-level analyses of single videos, neglecting the relational chains through which meaning is produced.
+
+Our central research question is: how do duet and stitch chains configure political participation among young users during electoral periods?
+
+We conducted a six-month netnography (March to August 2022) following 85 duet chains around three national elections, complemented by 24 semi-structured interviews with active political creators aged 18 to 27. Chains were reconstructed manually and analysed through multimodal analysis attentive to sound, gesture, text overlay and editing.
+
+Results indicate that duet chains generate layered argumentation in which each response both reframes and archives preceding positions. Interviewees described stitching as a way of talking back to politicians who would otherwise ignore them, while also acknowledging the risks of harassment and context collapse.
+
+We find that the platform's sound-centric design enables rapid diffusion of oppositional frames, but that algorithmic moderation unevenly suppresses explicitly political audio. The study contributes a relational methodology for studying platform politics and challenges accounts that dismiss short-video participation as superficial.`
+  });
+  seedHL(a2, 'remix affordances constitute a distinct mode of political participation', 'yellow', 'Pairs with Haddad & Morrow on platform grammars.', [T.part]);
+  seedHL(a2, 'research on TikTok politics remains dominated by content-level analyses of single videos', 'yellow', 'Gap', [T.meth]);
+  seedHL(a2, 'Chains were reconstructed manually and analysed through multimodal analysis', 'green', 'Relational unit of analysis — adaptable to YouTube response videos?', [T.meth]);
+  seedHL(a2, 'algorithmic moderation unevenly suppresses explicitly political audio', 'pink', '', [T.alg, T.part]);
+
+  const a3 = mkArticle({
+    sample: true, title: 'Framing Crisis Across Platforms: Visual Agenda-Setting in UK News Outlets’ Instagram and X Accounts',
+    authors: [{ family: 'Brennan', given: 'Kathleen' }], year: '2025', journal: 'Visual Communication Quarterly Review', volume: '9', issue: '1', pages: '1-27', doi: '',
+    abstract: 'This sample article compares the visual framing of crises by eight UK news outlets on Instagram and X, arguing that platform format predicts the dominant visual frame more strongly than editorial line.',
+    status: 'To Read', rating: 3, platforms: ['Instagram', 'X/Twitter', 'News Outlets', 'Multi-platform'], subjectTags: ['Visual Framing', 'Agenda-Setting'], methodTags: ['Content Analysis', 'Quantitative'],
+    content: `News organisations now distribute visual content across multiple social platforms, each with distinct formats and audience expectations. Yet agenda-setting research has largely focused on textual coverage, treating images as illustrative rather than as framing devices in their own right.
+
+This study examines how news outlets visually frame crises differently on Instagram and X, and argues that platform format, rather than editorial line alone, predicts the dominant visual frame.
+
+Drawing on visual framing theory and second-level agenda-setting, the analysis distinguishes between denotative, stylistic-semiotic, connotative and ideological levels of visual meaning.
+
+The dataset comprises 2,140 posts published by eight UK news outlets during three crisis events between 2021 and 2023. Posts were collected via platform APIs and archived screenshots, and analysed through quantitative content analysis using a codebook of 34 visual variables, with Krippendorff's alpha above 0.8 for all retained variables.
+
+Results show that Instagram posts favour human-interest and emotional frames, with close-up portraits of affected individuals, whereas X posts more frequently employ conflict and responsibility frames through data visualisations and official imagery. Outlet ideology exerted a weaker effect than platform.
+
+However, the study's reliance on publicly accessible posts excludes ephemeral formats such as Stories, and the findings may not generalise beyond the UK media system. Comparative research remains largely absent on how visual framing travels across platform ecologies.`
+  });
+  seedHL(a3, 'platform format, rather than editorial line alone, predicts the dominant visual frame', 'yellow', '', [T.vis]);
+  seedHL(a3, 'denotative, stylistic-semiotic, connotative and ideological levels of visual meaning', 'blue', 'Four-level model — usable for thumbnail coding.', [T.vis]);
+
+  const S0 = {
+    version: 1, articles: [a1, a2, a3], topics, colors: DEFAULT_COLORS.map(c => ({ ...c })), chats: {},
+    settings: { proxy: 'https://sheffield.idm.oclc.org/login?url=', apiKey: '', model: 'claude-sonnet-5-5', listAllAuthors: false, readerSize: 'md', aiLang: 'en' }
+  };
+  if (LANG === 'ar') S0.colors.forEach(c => { c.name = COLOR_NAMES.ar[c.key] || c.name; });
+  a1.summary = { ...heuristicSummary(a1), source: 'heuristic' };
+  a2.summary = { ...heuristicSummary(a2), source: 'heuristic' };
+  return S0;
+}
+
+/* ---------- State ---------- */
+let S = null;
+async function initState() {
+  try { S = await store.get('state'); } catch (e) { S = null; }
+  if (!S || !Array.isArray(S.articles)) { try { S = JSON.parse(localStorage.getItem(LS)); } catch (e) { S = null; } }
+  if (!S || !Array.isArray(S.articles)) S = seed();
+  S.settings = Object.assign({ proxy: 'https://sheffield.idm.oclc.org/login?url=', apiKey: '', model: 'claude-sonnet-5-5', listAllAuthors: false, readerSize: 'md', aiLang: 'en' }, S.settings || {});
+  S.chats = S.chats || {}; S.topics = S.topics || []; S.colors = S.colors?.length ? S.colors : DEFAULT_COLORS.map(c => ({ ...c }));
+  try { SYNC.meta = (await store.get('syncmeta')) || null; } catch (e) { SYNC.meta = null; }
+}
+
+const UI = {
+  view: 'library', articleId: null, panel: 'details', panelOpen: false,
+  filters: { platform: '', status: '', tag: '', q: '', sort: 'recent' },
+  synthMode: 'topic', synthArticle: null, synthTopic: null, quoteColor: '',
+  sel: null, globalQ: '', busy: {}, addTab: 'doi', lastDraft: {}, authMode: 'signin'
+};
+
+/* =========================================================
+   PERSISTENCE (IndexedDB) & CLOUD SYNC (Supabase)
+   - Local copy in IndexedDB: the app works fully offline.
+   - Articles sync one row each; topics/colours/settings/chats as key-value rows.
+   - Change detection by hashing each record against the last synced hash.
+   - Deletions travel as tombstones; unsynced local edits win over remote.
+   ========================================================= */
+const store = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => { const r = indexedDB.open('lectern', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  const run = (mode, fn) => open().then(db => new Promise((res, rej) => { const t = db.transaction('kv', mode); const q = fn(t.objectStore('kv')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }));
+  const lsKey = k => 'lectern.idb.' + k;
+  return {
+    get: k => run('readonly', s => s.get(k)).catch(() => { try { return JSON.parse(localStorage.getItem(lsKey(k))); } catch (e) { return null; } }),
+    set: (k, v) => run('readwrite', s => s.put(v, k)).catch(() => { try { localStorage.setItem(lsKey(k), JSON.stringify(v)); } catch (e) { toast('Storage is full — export a backup in Settings.', 'error'); } }),
+    del: k => run('readwrite', s => s.delete(k)).catch(() => { try { localStorage.removeItem(lsKey(k)); } catch (e) {} }),
+  };
+})();
+const CFG = Object.assign({ supabaseUrl: '', supabaseKey: '' }, window.LECTERN_CONFIG || {});
+const SYNC_ON = !!(CFG.supabaseUrl && CFG.supabaseKey && window.supabase && window.supabase.createClient);
+let supa = null, SESSION = null;
+const SYNC = { status: 'idle', msg: '', busy: false, again: false, meta: null, needRender: false, lastAt: null };
+const KV_KEYS = ['topics', 'colors', 'settings', 'chats'];
+const SYNCED_SETTINGS = ['proxy', 'model', 'listAllAuthors', 'aiLang'];
+const kvValue = k => k === 'settings' ? Object.fromEntries(SYNCED_SETTINGS.map(x => [x, S.settings[x] ?? null])) : (S[k] ?? null);
+const kvApply = (k, v) => { if (v == null) return; if (k === 'settings') Object.assign(S.settings, v); else S[k] = v; };
+function hash(str) { let h1 = 0xdeadbeef, h2 = 0x41c6ce57; for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + ':' + str.length; }
+const hj = v => hash(JSON.stringify(v ?? null));
+const freshMeta = uid => ({ uid, a: {}, k: {}, ca: '1970-01-01T00:00:00+00:00', ck: '1970-01-01T00:00:00+00:00' });
+
+const persistSoon = debounce(() => store.set('state', S), 250);
+function save() { persistSoon(); scheduleSync(); }
+const scheduleSync = debounce(() => syncNow(), 1500);
+
+function setSync(status, msg = '') { SYNC.status = status; SYNC.msg = msg; if (status === 'synced') SYNC.lastAt = new Date(); renderSyncBadge(); }
+function renderSyncBadge() {
+  const b = $('#syncbtn'); if (!b) return;
+  if (!SYNC_ON || !SESSION) { b.classList.add('hidden'); return; }
+  b.classList.remove('hidden');
+  const map = { idle: ['cloud', 'Sync now', ''], syncing: ['refresh-cw', 'Syncing…', 'animate-spin'], synced: ['cloud', 'Synced — tap to sync again', 'text-emerald-600 dark:text-emerald-400'], offline: ['cloud-off', 'Offline — changes are kept on this device', 'text-amber-600'], error: ['triangle-alert', 'Sync error — tap to retry', 'text-rose-600'] };
+  const [icn, label, cls] = map[SYNC.status] || map.idle;
+  b.setAttribute('title', tr(label) + (SYNC.msg ? ' · ' + SYNC.msg : ''));
+  b.innerHTML = ic(icn, 'w-5 h-5 ' + cls);
+  try { lucide.createIcons(); } catch (e) {}
+}
+
+async function pullTable(table, keyCol, cursorKey, onRow) {
+  for (;;) {
+    const { data, error } = await supa.from(table).select(`${keyCol},data,deleted,updated_at`).gt('updated_at', SYNC.meta[cursorKey]).order('updated_at', { ascending: true }).limit(500);
+    if (error) throw error;
+    for (const row of data) { onRow(row); SYNC.meta[cursorKey] = row.updated_at; }
+    if (data.length < 500) return;
+  }
+}
+async function pullAll(first) {
+  let any = false, remoteArticles = 0;
+  await pullTable('articles', 'id', 'ca', row => {
+    const i = S.articles.findIndex(a => a.id === row.id); const local = i > -1 ? S.articles[i] : null;
+    const known = Object.prototype.hasOwnProperty.call(SYNC.meta.a, row.id);
+    const dirty = !first && local && SYNC.meta.a[row.id] !== hj(local);
+    if (row.deleted) { if (local && !dirty) { S.articles.splice(i, 1); any = true; } if (!dirty) delete SYNC.meta.a[row.id]; return; }
+    remoteArticles++;
+    const hr = hj(row.data);
+    if (!local) { if (known && !first) return; S.articles.push(row.data); SYNC.meta.a[row.id] = hr; any = true; return; }
+    if (!dirty) { if (hr !== hj(local)) { S.articles[i] = row.data; any = true; } SYNC.meta.a[row.id] = hr; }
+  });
+  await pullTable('kv', 'key', 'ck', row => {
+    const k = row.key; if (!KV_KEYS.includes(k) || row.deleted) return;
+    const dirty = !first && SYNC.meta.k[k] !== hj(kvValue(k));
+    if (dirty) return;
+    if (hj(row.data) !== hj(kvValue(k))) { kvApply(k, row.data); any = true; }
+    SYNC.meta.k[k] = hj(kvValue(k));
+  });
+  if (first && remoteArticles > 0) {
+    // This device joins an existing library: drop its demo articles instead of uploading them.
+    const before = S.articles.length;
+    S.articles = S.articles.filter(a => !a.sample || Object.prototype.hasOwnProperty.call(SYNC.meta.a, a.id));
+    if (S.articles.length !== before) any = true;
+  }
+  return any;
+}
+async function pushAll(uid) {
+  const rows = [], pend = {};
+  for (const a of S.articles) { const h = hj(a); if (SYNC.meta.a[a.id] !== h) { rows.push({ user_id: uid, id: a.id, data: a, deleted: false }); pend[a.id] = h; } }
+  const live = new Set(S.articles.map(a => a.id));
+  for (const id of Object.keys(SYNC.meta.a)) if (!live.has(id)) { rows.push({ user_id: uid, id, data: null, deleted: true }); pend[id] = null; }
+  for (let i = 0; i < rows.length; i += 20) {
+    const chunk = rows.slice(i, i + 20);
+    const { error } = await supa.from('articles').upsert(chunk, { onConflict: 'user_id,id' });
+    if (error) throw error;
+    chunk.forEach(r => { if (pend[r.id] === null) delete SYNC.meta.a[r.id]; else SYNC.meta.a[r.id] = pend[r.id]; });
+  }
+  const kvRows = [], kp = {};
+  for (const k of KV_KEYS) { const v = kvValue(k); const h = hj(v); if (SYNC.meta.k[k] !== h) { kvRows.push({ user_id: uid, key: k, data: v, deleted: false }); kp[k] = h; } }
+  if (kvRows.length) { const { error } = await supa.from('kv').upsert(kvRows, { onConflict: 'user_id,key' }); if (error) throw error; kvRows.forEach(r => { SYNC.meta.k[r.key] = kp[r.key]; }); }
+  return rows.length + kvRows.length;
+}
+async function syncNow() {
+  if (!SYNC_ON || !SESSION || !S) return;
+  if (SYNC.busy) { SYNC.again = true; return; }
+  if (!navigator.onLine) { setSync('offline'); return; }
+  SYNC.busy = true; setSync('syncing');
+  try {
+    const uid = SESSION.user.id;
+    const first = !SYNC.meta || SYNC.meta.uid !== uid;
+    if (first) SYNC.meta = freshMeta(uid);
+    const changed = await pullAll(first);
+    await pushAll(uid);
+    await store.set('syncmeta', SYNC.meta);
+    if (changed) { await store.set('state', S); refreshView(); }
+    setSync('synced');
+  } catch (e) {
+    console.warn('[sync]', e);
+    setSync(navigator.onLine ? 'error' : 'offline', e?.message || String(e));
+  }
+  SYNC.busy = false;
+  if (SYNC.again) { SYNC.again = false; scheduleSync(); }
+}
+const isTyping = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || !!$('#modal-root').innerHTML;
+function refreshView() {
+  const gone = UI.articleId && !art(UI.articleId);
+  if (gone) { UI.articleId = null; if (UI.view === 'reader') UI.view = 'library'; }
+  if (isTyping() && !gone) { SYNC.needRender = true; return; }
+  SYNC.needRender = false;
+  const y = scrollY;
+  if (UI.view === 'reader' && !gone) { renderNav(); renderBody(); renderPanel(); } else render();
+  scrollTo(0, y);
+}
+
+/* ---------- Auth ---------- */
+async function initAuth() {
+  if (!SYNC_ON) return;
+  supa = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'lectern.auth' } });
+  try { const { data } = await supa.auth.getSession(); SESSION = data.session; } catch (e) { SESSION = null; }
+  supa.auth.onAuthStateChange((ev, s) => {
+    const was = !!SESSION; SESSION = s;
+    if (ev === 'PASSWORD_RECOVERY') setTimeout(async () => { const pw = prompt(L('New password (at least 8 characters)', 'كلمة المرور الجديدة (8 أحرف على الأقل)')); if (pw && pw.length >= 8) { const { error } = await supa.auth.updateUser({ password: pw }); toast(error ? error.message : L('Password updated', 'حُدّثت كلمة المرور'), error ? 'error' : 'ok'); } }, 300);
+    if (s && !was) { render(); syncNow(); }
+    if (!s && was) render();
+    renderSyncBadge();
+  });
+}
+function authHTML() {
+  const up = UI.authMode === 'signup';
+  return `<div class="min-h-[calc(100vh-57px)] grid place-items-center px-4 py-10">
+    <form id="authform" class="w-full max-w-sm ${card} p-6 sm:p-8 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-accent-700 text-white grid place-items-center mb-4">${ic('book-marked', 'w-6 h-6')}</div>
+      <h1 class="text-xl font-semibold tracking-tight">${up ? 'Create your account' : 'Sign in to your library'}</h1>
+      <p class="text-sm text-ink-500 mt-1 mb-5">Your articles, highlights and notes stay in sync across all your devices.</p>
+      <label class="${labelCls}">Email</label><input id="au-email" type="email" autocomplete="email" required dir="ltr" class="${inputCls}">
+      <label class="${labelCls} mt-3">Password</label><input id="au-pass" type="password" autocomplete="${up ? 'new-password' : 'current-password'}" required minlength="8" dir="ltr" class="${inputCls}">
+      <button type="submit" class="${btnPri} w-full justify-center mt-5 !h-10">${up ? 'Create account' : 'Sign in'}</button>
+      <p id="au-msg" class="text-sm mt-3 min-h-[1.25rem]"></p>
+      <div class="flex items-center justify-between text-sm mt-1">
+        <button type="button" data-act="authMode" class="text-accent-700 dark:text-accent-400 hover:underline">${up ? 'Have an account? Sign in' : 'First time? Create your account'}</button>
+        ${up ? '' : `<button type="button" data-act="forgotPw" class="text-ink-500 hover:underline">Forgot password?</button>`}
+      </div>
+    </form></div>`;
+}
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'authform') return;
+  e.preventDefault();
+  const email = $('#au-email').value.trim(), password = $('#au-pass').value, msg = $('#au-msg');
+  const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+  const say = (t, err) => { msg.textContent = tr(t); msg.className = 'text-sm mt-3 min-h-[1.25rem] ' + (err ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400'); };
+  try {
+    if (UI.authMode === 'signup') {
+      const { data, error } = await supa.auth.signUp({ email, password, options: { emailRedirectTo: location.href.split('#')[0].split('?')[0] } });
+      if (error) throw error;
+      if (!data.session) say('Check your email to confirm your account, then sign in here.');
+    } else {
+      const { error } = await supa.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+  } catch (err) { say(err.message || String(err), true); }
+  btn.disabled = false;
+});
+const art = id => S.articles.find(a => a.id === (id || UI.articleId));
+const colorOf = k => S.colors.find(c => c.key === k) || S.colors[0];
+const topicOf = id => S.topics.find(t => t.id === id);
+
+/* ---------- Toast ---------- */
+function toast(msg, kind = 'ok') {
+  const el = document.createElement('div');
+  el.className = `mb-2 px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium ${kind === 'error' ? 'bg-rose-600 text-white' : 'bg-ink-900 text-white dark:bg-white dark:text-ink-900'}`;
+  el.textContent = tr(msg); $('#toast').appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2200);
+}
+
+/* ---------- Authors & references (Sheffield Harvard / Cite Them Right) ---------- */
+function parseAuthors(str) {
+  return String(str || '').split(/;|\s+&\s+|\s+and\s+/).map(s => s.trim()).filter(Boolean).map(s => {
+    if (s.includes(',')) { const [f, ...g] = s.split(','); return { family: f.trim(), given: g.join(' ').trim() }; }
+    const p = s.split(/\s+/); return { family: p.pop(), given: p.join(' ') };
+  });
+}
+const authorsToStr = au => (au || []).map(a => a.given ? `${a.family}, ${a.given}` : a.family).join('; ');
+const initials = g => String(g || '').split(/[\s.]+/).filter(Boolean).map(p => p.split('-').map(x => x[0].toUpperCase() + '.').join('-')).join('');
+function shortAuthors(a) {
+  const f = (a.authors || []).map(x => x.family);
+  if (!f.length) return 'Anon.';
+  if (f.length === 1) return f[0];
+  if (f.length === 2) return `${f[0]} and ${f[1]}`;
+  if (f.length === 3) return `${f[0]}, ${f[1]} and ${f[2]}`;
+  return `${f[0]} et al.`;
+}
+const yearOf = a => a.year || 'no date';
+function inText(a, page, narrative = false) {
+  const p = page ? `, p. ${page}` : '';
+  return narrative ? `${shortAuthors(a)} (${yearOf(a)}${p})` : `(${shortAuthors(a)}, ${yearOf(a)}${p})`;
+}
+function refAuthors(a) {
+  const au = a.authors || []; const f = x => `${x.family}${x.given ? ', ' + initials(x.given) : ''}`;
+  if (!au.length) return 'Anon.';
+  if (au.length >= 4 && !S.settings.listAllAuthors) return `${f(au[0])} et al.`;
+  if (au.length === 1) return f(au[0]);
+  return au.slice(0, -1).map(f).join(', ') + ' and ' + f(au[au.length - 1]);
+}
+function pagesFmt(p) {
+  p = String(p || '').trim(); if (!p) return '';
+  return /[-–]/.test(p) ? 'pp. ' + p.replace(/\s*[-–]+\s*/, '–') : p;
+}
+function reference(a, html = false) {
+  const it = s => html ? `<i>${esc(s)}</i>` : s; const e = s => html ? esc(s) : s;
+  const parts = [`${e(refAuthors(a))} (${e(yearOf(a))}) '${e(a.title || 'Untitled')}'`];
+  if (a.journal) parts.push(it(a.journal));
+  const vi = a.volume ? a.volume + (a.issue ? `(${a.issue})` : '') : '';
+  if (vi) parts.push(e(vi));
+  if (a.pages) parts.push(e(pagesFmt(a.pages)));
+  let r = parts.join(', ') + '.';
+  if (a.doi) r += ` Available at: ${e('https://doi.org/' + a.doi)}.`;
+  else if (a.url) r += ` Available at: ${e(a.url)} (Accessed: ${fmtDate(a.added)}).`;
+  return r;
+}
+function refWarnings(a) {
+  const w = [];
+  if (!a.authors?.length) w.push('No authors');
+  if (!a.year) w.push('No year — renders as "(no date)"');
+  if (!a.journal) w.push('No journal title');
+  if (!a.volume) w.push('No volume (fine for online-first articles)');
+  if (!a.pages) w.push('No page range');
+  if (!a.doi && !a.url) w.push('No DOI or URL');
+  return w;
+}
+const proxied = a => {
+  const target = a.doi ? 'https://doi.org/' + a.doi : a.url;
+  return target ? (S.settings.proxy || '') + target : '';
+};
+
+/* ---------- Heuristic summariser (offline) ---------- */
+const CUES = {
+  thesis: /\b(this (article|paper|study|chapter) (argues|contends|proposes|examines|shows)|we (argue|contend|propose)|i argue|argues that|contend that|we term)\b/i,
+  questions: /(\?|\bresearch questions?\b|\bRQ\d\b|\bwe ask\b|\basks (whether|how)\b|\bcentral question\b)/i,
+  methodology: /\b(interview|survey|ethnograph|netnograph|content analysis|discourse analysis|multimodal|dataset|data set|corpus|sample[ds]?|sampling|coded|codebook|we (conducted|collected|analysed|analyzed)|scraped|API|computational|mixed[- ]method|qualitative|quantitative|inter-?coder|Krippendorff|NVivo)\b/i,
+  findings: /\b(find|found|findings|results?|shows? that|reveal|suggest that|demonstrate|indicate|we conclude)\b/i,
+  gap: /\b(little is known|little (research|attention)|gap|overlook|under-?(researched|explored|studied|theorised)|few studies|lacks?|remains? (unclear|absent|limited|dominated)|neglect|largely (absent|focused))\b/i,
+};
+function heuristicSummary(a) {
+  const sents = splitSentences([a.abstract, a.content].join('\n\n'));
+  const used = new Set(); const out = {};
+  for (const k of ['questions', 'gap', 'methodology', 'thesis', 'findings']) {
+    const hits = sents.filter(s => CUES[k].test(s) && !used.has(s));
+    const pick = hits.slice(0, k === 'findings' || k === 'methodology' ? 3 : 2);
+    pick.forEach(s => used.add(s));
+    out[k] = pick.join(' ');
+  }
+  if (!out.thesis) out.thesis = sents[0] || '';
+  return out;
+}
+function heuristicMeta(txt) {
+  const lines = txt.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const doi = ((txt.match(DOI_RE) || [])[0] || '').replace(/[.,;)]+$/, '');
+  const year = (txt.match(/\b(19[5-9]\d|20[0-4]\d)\b/) || [])[1] || '';
+  const title = lines[0] && lines[0].length < 300 ? lines[0] : '';
+  let authors = [];
+  if (lines[1] && lines[1].length < 220 && !/abstract|journal|doi|vol/i.test(lines[1]))
+    authors = lines[1].replace(/\d|\*|†/g, '').split(/,|;|\band\b|&/).map(s => s.trim()).filter(s => /^[A-ZÀ-Ý][\p{L}.'-]+(\s+[\p{L}.'-]+)+$/u.test(s)).map(s => { const p = s.split(/\s+/); return { family: p.pop(), given: p.join(' ') }; });
+  const m = txt.match(/abstract[:.\s]*\n?([\s\S]{60,3000}?)(\n\s*\n|\bkeywords\b|\bintroduction\b)/i);
+  return { title, authors, year, doi, abstract: m ? m[1].replace(/\s+/g, ' ').trim() : '' };
+}
+
+/* ---------- Claude API ---------- */
+const SUP_SYSTEM = `You are an experienced doctoral supervisor and research assistant in Digital Media and Communication at a UK university (University of Sheffield context). The researcher works on digital platforms, YouTube, political discourse and visual framing, including Arabic-language media.
+Write in UK English, peer-to-peer, precise and critical; no filler or flattery. Use Markdown with short headings and bullets.
+Cite only the sources supplied in the context, using University of Sheffield Harvard (Cite Them Right) in-text citations exactly as provided. Never invent sources, page numbers or findings; if the supplied text does not support a point, say so.`;
+const supSystem = () => SUP_SYSTEM + (S.settings.aiLang === 'ar' ? `
+OUTPUT LANGUAGE: Write your answer in Modern Standard Arabic, in an academic register. Give key English technical terms in parentheses on first use. Keep quotations, citations, author names and reference entries exactly as in the source (English). If asked for JSON, keep the keys in English and write the values in Arabic.` : '');
+async function claude(system, messages, maxTokens = 1600) {
+  if (SYNC_ON && SESSION) {
+    const { data } = await supa.auth.getSession();
+    const r = await fetch(`${CFG.supabaseUrl}/functions/v1/claude`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + (data.session?.access_token || ''), apikey: CFG.supabaseKey },
+      body: JSON.stringify({ model: S.settings.model || 'claude-sonnet-5-5', max_tokens: maxTokens, system, messages })
+    });
+    if (!r.ok) { let m = 'HTTP ' + r.status; try { const j = await r.json(); m = j.error?.message || (typeof j.error === 'string' ? j.error : '') || j.message || m; } catch (e) {} throw new Error(m); }
+    const j = await r.json(); return (j.content || []).map(c => c.text || '').join('').trim();
+  }
+  if (!S.settings.apiKey) throw new Error('NO_KEY');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': S.settings.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: S.settings.model || 'claude-sonnet-5-5', max_tokens: maxTokens, system, messages })
+  });
+  if (!r.ok) { let m = r.status + ''; try { m = (await r.json()).error?.message || m; } catch (e) {} throw new Error(m); }
+  const j = await r.json(); return (j.content || []).map(c => c.text || '').join('').trim();
+}
+const hasKey = () => (SYNC_ON && !!SESSION) || !!S.settings.apiKey;
+const parseJSON = t => { const m = String(t).match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; };
+
+function articleContext(a, withText = true) {
+  const hl = a.highlights.map(h => `- [${colorOf(h.color).name}] "${h.text}"${h.note ? ` (my note: ${h.note})` : ''}`).join('\n');
+  const sm = a.summary || {};
+  return `ARTICLE (focus): ${a.title}
+AUTHORS: ${authorsToStr(a.authors)} | YEAR: ${a.year} | JOURNAL: ${a.journal} ${a.volume}${a.issue ? '(' + a.issue + ')' : ''} | DOI: ${a.doi || '—'}
+IN-TEXT CITATION: ${inText(a)}
+PLATFORMS STUDIED: ${a.platforms.join(', ') || '—'} | SUBJECT TAGS: ${a.subjectTags.join(', ') || '—'} | METHOD TAGS: ${a.methodTags.join(', ') || '—'}
+ABSTRACT: ${a.abstract || '—'}
+STRUCTURED SUMMARY: thesis: ${sm.thesis || '—'} | RQs: ${sm.questions || '—'} | method: ${sm.methodology || '—'} | findings: ${sm.findings || '—'} | gap: ${sm.gap || '—'}
+MY HIGHLIGHTS:
+${hl || '—'}
+MY CRITICAL NOTES: ${a.critical || '—'} ${a.pageNotes.map(n => '| ' + n.text).join(' ')}
+${withText ? 'FULL TEXT (may be truncated):\n' + String(a.content).slice(0, 45000) : ''}`;
+}
+function libraryContext(excludeId) {
+  return S.articles.filter(x => x.id !== excludeId).map(x => `• ${inText(x)} — ${x.title} | platforms: ${x.platforms.join(', ') || '—'} | tags: ${[...x.subjectTags, ...x.methodTags].join(', ')} | thesis: ${x.summary?.thesis || x.abstract?.slice(0, 300) || '—'} | key quotes: ${x.highlights.slice(0, 5).map(h => '"' + h.text + '"').join('; ') || '—'}`).join('\n');
+}
+
+/* ---------- Markdown (chat) ---------- */
+function inlineMd(s) {
+  return s.replace(/\[([^\]]+)\]\(#hl:([a-z0-9]+)\)/gi, '<button data-act="goHL" data-id="$2" class="text-accent-600 dark:text-accent-400 underline underline-offset-2">$1</button>')
+    .replace(/\[([^\]]+)\]\(#p:([a-z0-9]+):(\d+)\)/gi, '<button data-act="goPara" data-aid="$2" data-i="$3" class="text-accent-600 dark:text-accent-400 underline underline-offset-2">$1</button>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>').replace(/`([^`]+)`/g, '<code class="px-1 rounded bg-ink-100 dark:bg-ink-800">$1</code>');
+}
+function md(src) {
+  const lines = esc(src).split('\n'); let out = '', list = null, para = [];
+  const fp = () => { if (para.length) { out += `<p>${inlineMd(para.join(' '))}</p>`; para = []; } };
+  const fl = () => { if (list) { out += `<${list.t}>${list.items.map(i => `<li>${inlineMd(i)}</li>`).join('')}</${list.t}>`; list = null; } };
+  for (const ln of lines) {
+    let m;
+    if ((m = ln.match(/^(#{1,4})\s+(.*)/))) { fp(); fl(); out += `<h4 class="font-semibold mt-3 mb-1">${inlineMd(m[2])}</h4>`; }
+    else if ((m = ln.match(/^\s*[-•*]\s+(.*)/))) { fp(); if (!list || list.t !== 'ul') { fl(); list = { t: 'ul', items: [] }; } list.items.push(m[1]); }
+    else if ((m = ln.match(/^\s*\d+[.)]\s+(.*)/))) { fp(); if (!list || list.t !== 'ol') { fl(); list = { t: 'ol', items: [] }; } list.items.push(m[1]); }
+    else if ((m = ln.match(/^&gt;\s?(.*)/))) { fp(); fl(); out += `<blockquote>${inlineMd(m[1])}</blockquote>`; }
+    else if (!ln.trim()) { fp(); fl(); }
+    else { fl(); para.push(ln); }
+  }
+  fp(); fl(); return out;
+}
+
+/* ---------- Clipboard ---------- */
+async function copyText(text, html) {
+  try {
+    if (html && window.ClipboardItem && navigator.clipboard?.write) {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([text], { type: 'text/plain' }), 'text/html': new Blob([html], { type: 'text/html' }) })]);
+    } else await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch (_) {} t.remove();
+  }
+  toast('Copied to clipboard');
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+const NAV = [
+  { v: 'library', label: 'Library', icon: 'library' },
+  { v: 'reader', label: 'Reader', icon: 'book-open-text' },
+  { v: 'synthesis', label: 'Synthesis', icon: 'network' },
+  { v: 'search', label: 'Search', icon: 'search' },
+];
+function renderNav() {
+  const btn = (n, mobile) => {
+    const active = UI.view === n.v; const disabled = n.v === 'reader' && !UI.articleId;
+    return `<button data-act="nav" data-view="${n.v}" ${disabled ? 'disabled' : ''} class="${mobile ? 'flex-1 py-2' : 'w-[60px] py-2.5 rounded-xl'} flex flex-col items-center gap-1 text-[11px] font-medium ${active ? 'text-accent-700 dark:text-accent-400 ' + (mobile ? '' : 'bg-accent-50 dark:bg-accent-500/10') : 'text-ink-500 dark:text-ink-400 hover:text-ink-800 dark:hover:text-ink-200'} ${disabled ? 'opacity-35 cursor-not-allowed' : ''}">${ic(n.icon, 'w-5 h-5')}${n.label}</button>`;
+  };
+  $('#rail').innerHTML = NAV.map(n => btn(n, false)).join('');
+  $('#bottomnav').innerHTML = NAV.map(n => btn(n, true)).join('');
+}
+function render() {
+  hideSelTool();
+  if (SYNC_ON && !SESSION) { $('#rail').innerHTML = ''; $('#bottomnav').innerHTML = ''; $('#main').innerHTML = authHTML(); icons(); return; }
+  renderNav();
+  const m = $('#main');
+  if (UI.view === 'library') m.innerHTML = libraryHTML();
+  else if (UI.view === 'reader') m.innerHTML = readerHTML();
+  else if (UI.view === 'synthesis') m.innerHTML = synthesisHTML();
+  else if (UI.view === 'search') m.innerHTML = searchHTML();
+  icons();
+}
+const icons = () => { translateDOM(document.body); try { lucide.createIcons(); } catch (e) {} };
+
+/* ---------- Shared bits ---------- */
+const stars = (n, act, size = 'w-4 h-4') => `<span class="inline-flex items-center">${[1, 2, 3, 4, 5].map(i => `<button ${act ? `data-act="${act}" data-v="${i}"` : 'tabindex="-1"'} class="${act ? 'p-0.5 hover:scale-110 transition' : 'pointer-events-none'}" title="${i} / 5">${ic('star', `${size} ${i <= n ? 'fill-amber-400 text-amber-400' : 'text-ink-300 dark:text-ink-600'}`)}</button>`).join('')}</span>`;
+const statusBadge = s => `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${STATUS_STYLE[s] || STATUS_STYLE['To Read']}">${esc(s)}</span>`;
+const chip = (t, cls = '') => `<span data-raw dir="auto" class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-ink-100 dark:bg-ink-800 text-ink-600 dark:text-ink-300 ${cls}">${esc(t)}</span>`;
+const platformChip = p => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-accent-50 text-accent-700 dark:bg-accent-500/10 dark:text-accent-400">${ic(PLATFORM_ICON[p] || 'globe', 'w-3 h-3')}${esc(p)}</span>`;
+const sampleBadge = a => a.sample ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300" title="Fictional demo article">Sample</span>` : '';
+const btnCls = 'inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 transition';
+const btnPri = 'inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium bg-accent-700 hover:bg-accent-800 text-white transition disabled:opacity-50';
+const inputCls = 'w-full rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-3 py-2 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/15';
+const labelCls = 'block text-[11px] font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400 mb-1';
+const card = 'rounded-2xl border border-ink-200/80 dark:border-ink-800 bg-white dark:bg-ink-900';
+
+/* ---------- Library ---------- */
+function allTags() { const s = new Set(); S.articles.forEach(a => [...a.subjectTags, ...a.methodTags].forEach(t => s.add(t))); return [...s].sort(); }
+function filteredArticles() {
+  const f = UI.filters; let list = [...S.articles];
+  if (f.platform) list = list.filter(a => a.platforms.includes(f.platform));
+  if (f.status) list = list.filter(a => a.status === f.status);
+  if (f.tag) list = list.filter(a => a.subjectTags.includes(f.tag) || a.methodTags.includes(f.tag));
+  if (f.q) { const q = f.q.toLowerCase(); list = list.filter(a => [a.title, authorsToStr(a.authors), a.journal, a.abstract, a.year].join(' ').toLowerCase().includes(q)); }
+  const sorts = {
+    recent: (x, y) => (y.lastOpened || y.added).localeCompare(x.lastOpened || x.added),
+    rating: (x, y) => y.rating - x.rating, year: (x, y) => String(y.year).localeCompare(String(x.year)),
+    author: (x, y) => shortAuthors(x).localeCompare(shortAuthors(y)), title: (x, y) => x.title.localeCompare(y.title),
+  };
+  return list.sort(sorts[f.sort] || sorts.recent);
+}
+function libraryHTML() {
+  const f = UI.filters; const list = filteredArticles();
+  const counts = Object.fromEntries(PLATFORMS.map(p => [p, S.articles.filter(a => a.platforms.includes(p)).length]));
+  const stat = s => S.articles.filter(a => a.status === s).length;
+  const totalHL = S.articles.reduce((n, a) => n + a.highlights.length, 0);
+  return `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div><h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">Library</h1>
+      <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">${S.articles.length} articles · ${totalHL} quotes · ${S.topics.length} research themes</p></div>
+    <div class="flex flex-wrap gap-2">
+      <button data-act="exportRefs" class="${btnCls}">${ic('list-ordered')}Reference list${list.length !== S.articles.length ? ' (filtered)' : ''}</button>
+      <button data-act="openAdd" class="${btnPri}">${ic('plus')}Add article</button>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    ${STATUSES.map(s => `<button data-act="setFilter" data-k="status" data-v="${f.status === s ? '' : s}" class="${card} p-3 sm:p-4 text-start hover:border-accent-300 dark:hover:border-accent-700 transition ${f.status === s ? 'ring-2 ring-accent-500' : ''}"><div class="text-2xl font-semibold">${stat(s)}</div><div class="mt-1">${statusBadge(s)}</div></button>`).join('')}
+  </div>
+  <div class="${card} p-3 sm:p-4 mb-6">
+    <div class="flex items-center gap-2 mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-500">${ic('radar', 'w-3.5 h-3.5')}Studied platform</div>
+    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+      <button data-act="setFilter" data-k="platform" data-v="" class="shrink-0 h-9 px-3 rounded-full text-sm font-medium border ${!f.platform ? 'bg-ink-900 text-white border-ink-900 dark:bg-white dark:text-ink-900 dark:border-white' : 'border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800'}">All</button>
+      ${PLATFORMS.map(p => `<button data-act="setFilter" data-k="platform" data-v="${f.platform === p ? '' : esc(p)}" class="shrink-0 h-9 px-3 rounded-full text-sm font-medium border inline-flex items-center gap-1.5 ${f.platform === p ? 'bg-accent-700 text-white border-accent-700' : 'border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800'} ${counts[p] ? '' : 'opacity-50'}">${ic(PLATFORM_ICON[p], 'w-3.5 h-3.5')}${esc(p)}<span class="text-[11px] opacity-70">${counts[p]}</span></button>`).join('')}
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+      <div class="relative">${ic('filter', 'w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-400')}<input data-filter="q" value="${esc(f.q)}" placeholder="Filter by title, author, journal…" class="${inputCls} ps-9"></div>
+      <select data-filter="tag" class="${inputCls}"><option value="">All subject &amp; method tags</option>${allTags().map(t => `<option data-raw ${f.tag === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <select data-filter="sort" class="${inputCls}">${[['recent', 'Recently opened'], ['rating', 'Relevance rating'], ['year', 'Year (newest)'], ['author', 'First author'], ['title', 'Title']].map(([v, l]) => `<option value="${v}" ${f.sort === v ? 'selected' : ''}>Sort: ${l}</option>`).join('')}</select>
+    </div>
+  </div>
+  ${list.length ? `<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">${list.map(articleCard).join('')}</div>` :
+      `<div class="${card} p-10 text-center text-ink-500">${ic('inbox', 'w-8 h-8 mx-auto mb-3 opacity-60')}<p>No articles match these filters.</p><button data-act="clearFilters" class="${btnCls} mt-4">Clear filters</button></div>`}
+  </div>`;
+}
+function articleCard(a) {
+  const byColor = S.colors.map(c => [c, a.highlights.filter(h => h.color === c.key).length]).filter(x => x[1]);
+  return `<article class="${card} p-4 sm:p-5 flex flex-col hover:shadow-md hover:border-accent-200 dark:hover:border-accent-800 transition cursor-pointer group" data-act="open" data-id="${a.id}">
+    <div class="flex items-center gap-2 mb-2">${statusBadge(a.status)}${sampleBadge(a)}<span class="ms-auto">${stars(a.rating, null, 'w-3.5 h-3.5')}</span></div>
+    <h3 data-raw dir="auto" class="font-serif text-[17px] leading-snug font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-400">${esc(a.title || 'Untitled')}</h3>
+    <p data-raw class="text-sm text-ink-500 dark:text-ink-400 mt-1.5">${esc(shortAuthors(a))} · ${esc(yearOf(a))}${a.journal ? ` · <i>${esc(a.journal)}</i>` : ''}</p>
+    ${a.abstract ? `<p data-raw dir="auto" class="text-sm text-ink-600 dark:text-ink-300 mt-3 line-clamp-3">${esc(a.abstract)}</p>` : ''}
+    <div class="flex flex-wrap gap-1.5 mt-3">${a.platforms.map(platformChip).join('')}${a.subjectTags.slice(0, 3).map(t => chip(t)).join('')}${a.methodTags.slice(0, 2).map(t => chip(t, 'italic')).join('')}</div>
+    <div class="mt-auto pt-4 flex items-center gap-3 text-xs text-ink-500">
+      <span class="inline-flex items-center gap-1">${ic('highlighter', 'w-3.5 h-3.5')}${a.highlights.length}</span>
+      <span class="flex gap-0.5">${byColor.map(([c, n]) => `<span title="${esc(c.name)}: ${n}" class="h-2 rounded-full" style="width:${8 + n * 4}px;background:${c.hex}"></span>`).join('')}</span>
+      <span class="ms-auto">${a.summary?.thesis ? `<span class="inline-flex items-center gap-1">${ic('sparkles', 'w-3.5 h-3.5')}Summary</span>` : ''}</span>
+    </div>
+  </article>`;
+}
+
+/* ---------- Reader ---------- */
+function validHL(a, h, paras) {
+  const t = paras[h.para];
+  if (t && t.slice(h.start, h.end) === h.text) return true;
+  for (let i = 0; i < paras.length; i++) { const s = paras[i].indexOf(h.text); if (s > -1) { h.para = i; h.start = s; h.end = s + h.text.length; return true; } }
+  return false;
+}
+function paraHTML(a, i, text) {
+  const hls = a.highlights.filter(h => h.para === i).sort((x, y) => x.start - y.start);
+  let out = '', pos = 0;
+  for (const h of hls) {
+    if (h.start < pos) continue;
+    out += esc(text.slice(pos, h.start));
+    out += `<mark data-hl="${h.id}" data-act="editHL" data-id="${h.id}" class="hl${h.note ? ' has-note' : ''}" style="--hl:${colorOf(h.color).hex}" title="${esc(colorOf(h.color).name)}${h.note ? ' — ' + esc(h.note) : ''}">${esc(text.slice(h.start, h.end))}</mark>`;
+    pos = h.end;
+  }
+  out += esc(text.slice(pos));
+  const tr = a.translations?.[i];
+  return `<div class="para relative" id="para-${i}">
+    <div class="para-tools absolute -start-11 top-1 hidden sm:flex flex-col gap-1">
+      <button data-act="trPara" data-i="${i}" title="Translate paragraph (EN ⇄ AR)" class="w-8 h-8 rounded-lg grid place-items-center text-ink-400 hover:text-accent-600 hover:bg-ink-100 dark:hover:bg-ink-800">${ic('languages')}</button>
+    </div><p data-raw dir="auto" data-para="${i}" class="reader-p">${out}</p>${tr ? `<div class="-mt-2 mb-6 rounded-xl border border-accent-200 dark:border-accent-800 bg-accent-50/60 dark:bg-accent-500/5 p-4">
+      <div class="flex items-center justify-between mb-1 text-[11px] font-semibold uppercase tracking-wide text-accent-700 dark:text-accent-400">${ic('languages', 'w-3.5 h-3.5')} ${tr.dir === 'rtl' ? 'Arabic' : 'English'} translation<button data-act="trHide" data-i="${i}" class="ms-auto p-1 hover:text-ink-900 dark:hover:text-white">${ic('x', 'w-3.5 h-3.5')}</button></div>
+      <p data-raw dir="${tr.dir}" class="${tr.dir === 'rtl' ? 'ar text-[1.15rem]' : 'font-serif'} text-ink-800 dark:text-ink-100">${esc(tr.text)}</p></div>` : ''}
+    <button data-act="trPara" data-i="${i}" class="sm:hidden -mt-3 mb-4 text-[11px] text-ink-400 inline-flex items-center gap-1">${ic('languages', 'w-3 h-3')}Translate</button>
+  </div>`;
+}
+function readerBodyHTML(a) {
+  const ps = paraList(a); a.highlights = a.highlights.filter(h => validHL(a, h, ps));
+  return ps.length ? ps.map((p, i) => paraHTML(a, i, p)).join('') :
+    `<div class="rounded-xl border border-dashed border-ink-300 dark:border-ink-700 p-6 text-center text-sm text-ink-500">No full text yet. Open the article via EZproxy, copy the text, and paste it in <button data-act="editText" class="underline text-accent-600">Edit full text</button>.</div>`;
+}
+function readerHTML() {
+  const a = art(); if (!a) { UI.view = 'library'; return libraryHTML(); }
+  const prox = proxied(a);
+  return `<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_440px] xl:grid-cols-[minmax(0,1fr)_480px]">
+  <section class="min-w-0">
+    <div class="sticky top-[57px] z-20 bg-ink-50/90 dark:bg-ink-950/90 backdrop-blur border-b border-ink-200/70 dark:border-ink-800 px-3 sm:px-6 h-12 flex items-center gap-2">
+      <button data-act="nav" data-view="library" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800" title="Back to library">${ic('arrow-left', 'w-4 h-4 flip-rtl')}</button>
+      <span data-raw class="truncate text-sm font-medium flex-1">${esc(shortAuthors(a))} (${esc(yearOf(a))})</span>
+      <div class="hidden sm:flex items-center gap-1 me-1">${S.colors.map((c, i) => `<span class="inline-flex items-center gap-1 text-[11px] text-ink-500 px-1.5" title="Shortcut: select text, press ${i + 1}"><span class="w-2.5 h-2.5 rounded-full" style="background:${c.hex}"></span><span class="hidden xl:inline">${esc(c.name)}</span></span>`).join('')}</div>
+      <button data-act="fontSize" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800" title="Reading size">${ic('a-large-small')}</button>
+      <button data-act="togglePanel" class="lg:hidden h-9 px-3 rounded-lg bg-accent-700 text-white text-sm font-medium inline-flex items-center gap-1.5">${ic('panel-right')}Tools</button>
+    </div>
+    <article class="max-w-[74ch] mx-auto px-5 sm:px-14 py-8 sm:py-12 reader-${S.settings.readerSize}">
+      <div class="flex flex-wrap items-center gap-2 mb-4">${statusBadge(a.status)}${sampleBadge(a)}${a.platforms.map(platformChip).join('')}</div>
+      <h1 data-raw dir="auto" class="font-serif text-[1.75rem] sm:text-[2.1rem] leading-tight font-semibold tracking-tight">${esc(a.title || 'Untitled')}</h1>
+      <p data-raw dir="auto" class="mt-3 text-ink-600 dark:text-ink-300">${esc((a.authors || []).map(x => `${x.given} ${x.family}`.trim()).join(', ') || 'Unknown author')}</p>
+      <p data-raw dir="auto" class="mt-1 text-sm text-ink-500">${a.journal ? `<i>${esc(a.journal)}</i>` : ''}${a.volume ? `, ${esc(a.volume)}${a.issue ? `(${esc(a.issue)})` : ''}` : ''}${a.pages ? `, ${esc(pagesFmt(a.pages))}` : ''} · ${esc(yearOf(a))}</p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        ${a.doi ? `<a href="https://doi.org/${esc(a.doi)}" target="_blank" rel="noopener" class="${btnCls} !h-8 !text-xs">${ic('link', 'w-3.5 h-3.5')}<span data-raw>doi:${esc(a.doi)}</span></a>` : ''}
+        ${prox ? `<a href="${esc(prox)}" target="_blank" rel="noopener" class="${btnCls} !h-8 !text-xs">${ic('key-round', 'w-3.5 h-3.5')}Open via EZproxy</a>` : ''}
+        <button data-act="editText" class="${btnCls} !h-8 !text-xs">${ic('file-pen-line', 'w-3.5 h-3.5')}Edit full text</button>
+      </div>
+      ${a.abstract ? `<div class="mt-8 mb-10 rounded-2xl bg-white dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 p-5"><div class="${labelCls}">Abstract</div><p data-raw dir="auto" class="font-serif text-[1.02rem] leading-relaxed text-ink-700 dark:text-ink-200">${esc(a.abstract)}</p></div>` : '<div class="h-8"></div>'}
+      <div id="reader-body">${readerBodyHTML(a)}</div>
+      <div class="mt-12 pt-6 border-t border-ink-200 dark:border-ink-800 flex flex-wrap gap-2 text-sm">
+        <button data-act="panel" data-p="quotes" class="${btnCls}">${ic('quote')}All quotes (${a.highlights.length})</button>
+        <button data-act="panel" data-p="cite" class="${btnCls}">${ic('book-check')}Cite this</button>
+      </div>
+    </article>
+  </section>
+  <aside id="panel" class="fixed lg:sticky inset-y-0 lg:inset-auto end-0 lg:top-[57px] z-40 lg:z-auto w-full sm:w-[440px] lg:w-auto h-[100dvh] lg:h-[calc(100vh-57px)] bg-white dark:bg-ink-900 border-s border-ink-200 dark:border-ink-800 flex flex-col transition-transform duration-200 ${UI.panelOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full'} lg:translate-x-0 lg:shadow-none">${panelHTML(a)}</aside>
+  </div>`;
+}
+const PANEL_TABS = [['details', 'Details', 'sliders-horizontal'], ['summary', 'Summary', 'sparkles'], ['quotes', 'Quotes', 'quote'], ['cite', 'Cite', 'book-check'], ['assistant', 'Assistant', 'bot']];
+function panelHTML(a) {
+  const body = { details: detailsTab, summary: summaryTab, quotes: quotesTab, cite: citeTab, assistant: assistantTab }[UI.panel](a);
+  return `<div class="flex items-center border-b border-ink-200 dark:border-ink-800 px-2 shrink-0">
+    <div class="flex flex-1 overflow-x-auto no-scrollbar">${PANEL_TABS.map(([k, l, i]) => `<button data-act="panel" data-p="${k}" class="shrink-0 px-3 h-12 text-sm font-medium inline-flex items-center gap-1.5 border-b-2 ${UI.panel === k ? 'border-accent-600 text-accent-700 dark:text-accent-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'}">${ic(i)}${l}</button>`).join('')}</div>
+    <button data-act="togglePanel" class="lg:hidden w-10 h-10 grid place-items-center">${ic('x')}</button>
+  </div>
+  <div id="panel-body" class="flex-1 overflow-y-auto scroll-thin ${UI.panel === 'assistant' ? 'flex flex-col' : 'p-4 sm:p-5'}">${body}</div>`;
+}
+function renderPanel() {
+  const a = art(); const p = $('#panel'); if (!a || !p) return;
+  const pb = $('#panel-body'); const st = pb ? pb.scrollTop : 0;
+  p.innerHTML = panelHTML(a); icons();
+  const nb = $('#panel-body'); if (nb && UI.panel !== 'assistant') nb.scrollTop = st;
+  if (UI.panel === 'assistant') { const log = $('#chatlog'); if (log) log.scrollTop = log.scrollHeight; }
+}
+function renderBody() { const a = art(); const b = $('#reader-body'); if (!a || !b) return; b.innerHTML = readerBodyHTML(a); icons(); }
+
+/* Tag chip editor */
+function tagEditor(a, field, suggestions, placeholder) {
+  return `<div class="flex flex-wrap gap-1.5 p-2 rounded-lg border border-ink-200 dark:border-ink-700 bg-white dark:bg-ink-900 min-h-[42px]">
+    ${a[field].map(t => `<span data-raw dir="auto" class="inline-flex items-center gap-1 ps-2 pe-1 py-0.5 rounded-md text-xs font-medium bg-ink-100 dark:bg-ink-800">${esc(t)}<button data-act="rmTag" data-f="${field}" data-t="${esc(t)}" class="p-0.5 hover:text-rose-600">${ic('x', 'w-3 h-3')}</button></span>`).join('')}
+    <input data-tag="${field}" list="dl-${field}" placeholder="${placeholder}" class="flex-1 min-w-[120px] bg-transparent outline-none text-sm px-1">
+    <datalist id="dl-${field}">${[...new Set([...suggestions, ...S.articles.flatMap(x => x[field])])].filter(t => !a[field].includes(t)).map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+  </div>`;
+}
+function detailsTab(a) {
+  const f = (k, l, cls = '') => `<div class="${cls}"><label class="${labelCls}">${l}</label><input data-field="${k}" value="${esc(k === 'authors' ? authorsToStr(a.authors) : a[k])}" class="${inputCls}"></div>`;
+  return `<div class="space-y-5">
+  <div class="grid grid-cols-2 gap-3">
+    <div><label class="${labelCls}">Reading status</label><select data-field="status" class="${inputCls}">${STATUSES.map(s => `<option value="${s}" ${a.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+    <div><label class="${labelCls}">Relevance</label><div class="h-[38px] flex items-center">${stars(a.rating, 'rate', 'w-5 h-5')}</div></div>
+  </div>
+  <div><label class="${labelCls}">Studied platform(s)</label><div class="flex flex-wrap gap-1.5">${PLATFORMS.map(p => `<button data-act="togglePlatform" data-p="${esc(p)}" class="h-8 px-2.5 rounded-lg text-xs font-medium border inline-flex items-center gap-1 ${a.platforms.includes(p) ? 'bg-accent-700 border-accent-700 text-white' : 'border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800'}">${ic(PLATFORM_ICON[p], 'w-3.5 h-3.5')}${esc(p)}</button>`).join('')}</div></div>
+  <div><label class="${labelCls}">Subject / topic tags</label>${tagEditor(a, 'subjectTags', SUBJECT_TAGS, 'Add subject tag + Enter')}</div>
+  <div><label class="${labelCls}">Methodological tags</label>${tagEditor(a, 'methodTags', METHOD_TAGS, 'Add method tag + Enter')}</div>
+  <div><label class="${labelCls}">Critical commentary &amp; reflections</label><textarea data-field="critical" rows="4" class="${inputCls} min-h-[96px]" placeholder="Where does this sit in your argument? What would you push back on?">${esc(a.critical)}</textarea></div>
+  <details class="group rounded-xl border border-ink-200 dark:border-ink-800" ${a.title ? '' : 'open'}>
+    <summary class="cursor-pointer px-3 py-2.5 text-sm font-medium flex items-center gap-2">${ic('file-text')}Bibliographic metadata<span class="ms-auto text-ink-400 group-open:rotate-180 transition">${ic('chevron-down')}</span></summary>
+    <div class="p-3 pt-0 grid grid-cols-6 gap-3">
+      ${f('title', 'Title', 'col-span-6')}${f('authors', 'Authors (Family, Given; …)', 'col-span-6')}
+      ${f('year', 'Year', 'col-span-2')}${f('volume', 'Vol.', 'col-span-2')}${f('issue', 'Issue', 'col-span-2')}
+      ${f('journal', 'Journal / Source', 'col-span-4')}${f('pages', 'Pages', 'col-span-2')}
+      ${f('doi', 'DOI', 'col-span-6')}${f('url', 'URL', 'col-span-6')}
+      <div class="col-span-6"><label class="${labelCls}">Abstract</label><textarea data-field="abstract" rows="4" class="${inputCls}">${esc(a.abstract)}</textarea></div>
+    </div>
+  </details>
+  <div class="flex flex-wrap gap-2 pt-1">
+    <button data-act="editText" class="${btnCls}">${ic('file-pen-line')}Edit full text</button>
+    <button data-act="deleteArticle" class="${btnCls} text-rose-600 hover:!bg-rose-50 dark:hover:!bg-rose-500/10">${ic('trash-2')}Delete</button>
+  </div>
+  <p class="text-[11px] text-ink-400">Added ${fmtShort(a.added)}</p>
+  </div>`;
+}
+const SUM_FIELDS = [['thesis', 'Core research idea / main thesis', 'lightbulb'], ['questions', 'Research questions', 'circle-help'], ['methodology', 'Methodology & data set', 'flask-conical'], ['findings', 'Key findings & empirical results', 'bar-chart-3'], ['gap', 'Research gap addressed', 'puzzle']];
+function summaryTab(a) {
+  const sm = a.summary || {}; const busy = UI.busy['sum-' + a.id];
+  const src = { claude: ['Claude', 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300'], heuristic: ['Offline heuristic — verify', 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'], manual: ['Edited by you', 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'] }[sm.source];
+  return `<div class="space-y-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <button data-act="summarise" data-mode="claude" class="${btnPri}" ${busy ? 'disabled' : ''}>${busy ? ic('loader-2', 'w-4 h-4 animate-spin') : ic('sparkles')}${busy ? 'Summarising…' : 'Summarise with Claude'}</button>
+      <button data-act="summarise" data-mode="heuristic" class="${btnCls}">${ic('scan-text')}Offline extract</button>
+      ${src ? `<span class="ms-auto px-2 py-0.5 rounded-full text-[11px] font-semibold ${src[1]}">${src[0]}</span>` : ''}
+    </div>
+    ${!hasKey() ? `<p class="text-xs text-ink-500 bg-ink-50 dark:bg-ink-800/60 rounded-lg p-3">${ic('info', 'w-3.5 h-3.5 inline -mt-0.5')} No Claude API key set — "Summarise with Claude" needs one (Settings). The offline extract selects cue sentences from the text; it does not interpret.</p>` : ''}
+    ${SUM_FIELDS.map(([k, l, i]) => `<div class="rounded-xl border border-ink-200 dark:border-ink-800 p-3">
+      <div class="flex items-center gap-2 mb-1.5 text-sm font-semibold">${ic(i, 'w-4 h-4 text-accent-600 dark:text-accent-400')}${l}<button data-act="copySum" data-k="${k}" class="ms-auto p-1 text-ink-400 hover:text-ink-800 dark:hover:text-white" title="Copy">${ic('copy', 'w-3.5 h-3.5')}</button></div>
+      <textarea data-sum="${k}" rows="3" class="w-full bg-transparent outline-none text-sm leading-relaxed resize-none min-h-[60px]" placeholder="—">${esc(sm[k] || '')}</textarea></div>`).join('')}
+    <button data-act="copySumAll" class="${btnCls} w-full justify-center">${ic('clipboard-copy')}Copy summary as Markdown</button>
+  </div>`;
+}
+function quoteItem(a, h, opts = {}) {
+  const c = colorOf(h.color);
+  return `<div class="rounded-xl border border-ink-200 dark:border-ink-800 overflow-hidden flex">
+    <div class="w-1.5 shrink-0" style="background:${c.hex}"></div>
+    <div class="p-3 flex-1 min-w-0">
+      <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-500 mb-1">${esc(c.name)}${opts.showSource ? `<span data-raw class="normal-case tracking-normal font-medium text-ink-400 truncate">· ${esc(inText(a, h.page))}</span>` : ''}</div>
+      <blockquote data-raw dir="auto" class="font-serif text-[15px] leading-relaxed text-ink-800 dark:text-ink-100">“${esc(h.text)}”</blockquote>
+      ${h.note ? `<p class="mt-2 text-sm text-ink-600 dark:text-ink-300 flex gap-1.5">${ic('sticky-note', 'w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500')}<span data-raw dir="auto">${esc(h.note)}</span></p>` : ''}
+      <div class="mt-2 flex flex-wrap items-center gap-1.5">
+        ${h.topicIds.map(topicOf).filter(Boolean).map(t => `<span data-raw class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-accent-50 text-accent-700 dark:bg-accent-500/10 dark:text-accent-400">#${esc(t.name)}</span>`).join('')}
+        <span class="ms-auto flex gap-1">
+          <button data-act="goHL" data-id="${h.id}" class="h-7 px-2 rounded-md text-xs font-medium hover:bg-ink-100 dark:hover:bg-ink-800 inline-flex items-center gap-1" title="Jump to source">${ic('locate-fixed', 'w-3.5 h-3.5')}Source</button>
+          <button data-act="copyQuote" data-id="${h.id}" class="h-7 w-7 rounded-md hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center" title="Copy with citation">${ic('copy', 'w-3.5 h-3.5')}</button>
+          <button data-act="editHL" data-id="${h.id}" class="h-7 w-7 rounded-md hover:bg-ink-100 dark:hover:bg-ink-800 grid place-items-center" title="Edit">${ic('pencil', 'w-3.5 h-3.5')}</button>
+        </span>
+      </div>
+    </div></div>`;
+}
+function noteItem(a, n, opts = {}) {
+  return `<div class="rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 p-3">
+    <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400 mb-1">${ic('notebook-pen', 'w-3.5 h-3.5')}Article note${opts.showSource ? `<span data-raw class="normal-case tracking-normal font-medium text-ink-400 truncate">· ${esc(inText(a))}</span>` : ''}<span class="ms-auto normal-case tracking-normal font-normal text-ink-400">${fmtShort(n.created)}</span></div>
+    <p data-raw dir="auto" class="text-sm whitespace-pre-wrap">${esc(n.text)}</p>
+    <div class="mt-2 flex flex-wrap items-center gap-1.5">${n.topicIds.map(topicOf).filter(Boolean).map(t => `<span data-raw class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-accent-50 text-accent-700 dark:bg-accent-500/10 dark:text-accent-400">#${esc(t.name)}</span>`).join('')}
+      <span class="ms-auto flex gap-1">${opts.showSource ? `<button data-act="open" data-id="${a.id}" class="h-7 px-2 rounded-md text-xs hover:bg-amber-100 dark:hover:bg-amber-500/10 inline-flex items-center gap-1">${ic('book-open', 'w-3.5 h-3.5')}Open</button>` : ''}<button data-act="editNote" data-aid="${a.id}" data-id="${n.id}" class="h-7 w-7 rounded-md hover:bg-amber-100 dark:hover:bg-amber-500/10 grid place-items-center">${ic('pencil', 'w-3.5 h-3.5')}</button></span></div>
+  </div>`;
+}
+function quotesTab(a) {
+  const hl = a.highlights.filter(h => !UI.quoteColor || h.color === UI.quoteColor).sort((x, y) => x.para - y.para || x.start - y.start);
+  return `<div class="space-y-4">
+    <div class="flex flex-wrap gap-1.5">
+      <button data-act="quoteColor" data-c="" class="h-8 px-2.5 rounded-lg text-xs font-medium border ${!UI.quoteColor ? 'bg-ink-900 text-white border-ink-900 dark:bg-white dark:text-ink-900' : 'border-ink-200 dark:border-ink-700'}">All ${a.highlights.length}</button>
+      ${S.colors.map(c => { const n = a.highlights.filter(h => h.color === c.key).length; return `<button data-act="quoteColor" data-c="${c.key}" class="h-8 px-2.5 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 ${UI.quoteColor === c.key ? 'ring-2 ring-accent-500 border-transparent' : 'border-ink-200 dark:border-ink-700'}"><span class="w-2.5 h-2.5 rounded-full" style="background:${c.hex}"></span>${esc(c.name)} ${n}</button>`; }).join('')}
+    </div>
+    <div class="rounded-xl border border-ink-200 dark:border-ink-800 p-3">
+      <label class="${labelCls}">Add a note to the whole article</label>
+      <textarea id="pagenote" rows="2" class="${inputCls}" placeholder="Overall reflection, link to your chapters…"></textarea>
+      <div class="flex justify-end mt-2"><button data-act="addPageNote" class="${btnPri} !h-8">${ic('plus')}Add note</button></div>
+    </div>
+    ${a.pageNotes.map(n => noteItem(a, n)).join('')}
+    ${hl.length ? hl.map(h => quoteItem(a, h)).join('') : `<div class="text-center text-sm text-ink-500 py-8">${ic('highlighter', 'w-6 h-6 mx-auto mb-2 opacity-60')}Select text in the reader to highlight it.</div>`}
+    <div class="flex gap-2 pt-2">
+      <button data-act="copyArticleMd" data-id="${a.id}" class="${btnCls} flex-1 justify-center">${ic('clipboard-copy')}Copy as Markdown</button>
+      <button data-act="synthArticle" data-id="${a.id}" class="${btnCls} flex-1 justify-center">${ic('network')}Synthesis view</button>
+    </div>
+  </div>`;
+}
+function citeTab(a) {
+  const w = refWarnings(a);
+  const box = (label, text, act, extra = '') => `<div class="rounded-xl border border-ink-200 dark:border-ink-800 p-3">
+    <div class="flex items-center mb-1.5"><span class="${labelCls} !mb-0">${label}</span><button data-act="${act}" ${extra} class="ms-auto h-7 px-2 rounded-md text-xs font-medium bg-accent-700 hover:bg-accent-800 text-white inline-flex items-center gap-1">${ic('copy', 'w-3.5 h-3.5')}Copy</button></div>
+    <div data-raw dir="ltr" class="text-sm leading-relaxed text-start">${text}</div></div>`;
+  return `<div class="space-y-4">
+    <div class="flex items-start gap-2 text-xs text-ink-500">${ic('graduation-cap', 'w-4 h-4 shrink-0 mt-0.5 text-accent-600')}<span>University of Sheffield Harvard — the Library bases it on <i>Cite Them Right</i>. Check edge cases against the <a class="underline" target="_blank" rel="noopener" href="https://librarydevelopment.group.shef.ac.uk/referencing/harvard.html">Library’s current guide</a>.</span></div>
+    ${box('Reference list entry', reference(a, true), 'copyRef')}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      ${box('In-text (parenthetical)', esc(inText(a)), 'copyCite', 'data-mode="p"')}
+      ${box('In-text (narrative)', esc(inText(a, '', true)), 'copyCite', 'data-mode="n"')}
+    </div>
+    <div class="rounded-xl border border-ink-200 dark:border-ink-800 p-3">
+      <label class="${labelCls}">Direct quotation — page number</label>
+      <div class="flex gap-2"><input id="citepage" placeholder="e.g. 214" class="${inputCls} !w-28"><button data-act="copyCite" data-mode="page" class="${btnCls}">${ic('copy')}Copy (Author, Year, p. X)</button></div>
+    </div>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" data-setting="listAllAuthors" ${S.settings.listAllAuthors ? 'checked' : ''} class="w-4 h-4 accent-indigo-600"> List every author in the reference (4+ authors) instead of “et al.”</label>
+    ${w.length ? `<div class="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-3 text-xs text-amber-800 dark:text-amber-300"><div class="font-semibold mb-1 flex items-center gap-1">${ic('triangle-alert', 'w-3.5 h-3.5')}Incomplete metadata</div>${w.map(x => '• ' + esc(x)).join('<br>')}<button data-act="panel" data-p="details" class="block mt-2 underline">Edit metadata</button></div>` : ''}
+  </div>`;
+}
+const QUICK = [['analyze', 'Analyse methodology', 'flask-conical'], ['gap', 'Identify research gap', 'puzzle'], ['synth', 'Synthesise with library', 'network'], ['lr', 'Draft lit-review paragraph', 'pen-line']];
+function assistantTab(a) {
+  const log = S.chats[a.id] || []; const busy = UI.busy['chat-' + a.id];
+  return `<div class="px-4 pt-3 pb-2 border-b border-ink-100 dark:border-ink-800 shrink-0">
+      <div class="flex items-center gap-2 text-xs mb-2"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${hasKey() ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'}">${ic(hasKey() ? 'zap' : 'wifi-off', 'w-3 h-3')}${hasKey() ? 'Live · ' + esc(S.settings.model) : 'Offline mode'}</span>
+      ${log.length ? `<button data-act="clearChat" class="ms-auto text-ink-400 hover:text-rose-600 inline-flex items-center gap-1">${ic('eraser', 'w-3.5 h-3.5')}Clear</button>` : ''}</div>
+      <div class="grid grid-cols-2 gap-1.5">${QUICK.map(([k, l, i]) => `<button data-act="quick" data-k="${k}" ${busy ? 'disabled' : ''} class="h-9 px-2 rounded-lg text-xs font-medium border border-ink-200 dark:border-ink-700 hover:bg-accent-50 hover:border-accent-300 dark:hover:bg-accent-500/10 inline-flex items-center gap-1.5 text-start disabled:opacity-50">${ic(i, 'w-3.5 h-3.5 shrink-0 text-accent-600 dark:text-accent-400')}<span class="truncate">${l}</span></button>`).join('')}</div>
+    </div>
+    <div id="chatlog" class="flex-1 overflow-y-auto scroll-thin p-4 space-y-3">
+      ${log.length ? log.map(m => m.role === 'user'
+        ? (m.quick ? `<div class="ms-8 rounded-2xl rounded-ee-md bg-accent-700 text-white px-3.5 py-2.5 text-sm">${esc((QUICK.find(x => x[0] === m.quick) || [, m.label])[1])}</div>` : `<div data-raw dir="auto" class="ms-8 rounded-2xl rounded-ee-md bg-accent-700 text-white px-3.5 py-2.5 text-sm whitespace-pre-wrap">${esc(m.label || m.content)}</div>`)
+        : `<div class="me-4 rounded-2xl rounded-es-md bg-ink-100 dark:bg-ink-800 px-3.5 py-2.5 text-sm chat-md leading-relaxed"><div data-raw dir="auto">${md(m.content)}</div>${m.offline ? '<p class="text-[11px] text-ink-400 mt-2 !mb-0">Offline · built from your library data</p>' : ''}<div class="flex justify-end mt-1"><button data-act="copyMsg" data-i="${log.indexOf(m)}" class="text-ink-400 hover:text-ink-800 dark:hover:text-white p-1" title="Copy">${ic('copy', 'w-3.5 h-3.5')}</button></div></div>`).join('')
+      : `<div class="text-center text-sm text-ink-500 py-10 px-4">${ic('bot', 'w-8 h-8 mx-auto mb-3 text-accent-500')}<p class="font-medium text-ink-700 dark:text-ink-200">Supervisor mode</p><p class="mt-1">Reads this article’s text, your highlights and notes${hasKey() ? '' : '. Without an API key, replies are assembled from your own library data'}.</p></div>`}
+      ${busy ? `<div class="me-4 rounded-2xl bg-ink-100 dark:bg-ink-800 px-3.5 py-3 text-sm inline-flex items-center gap-2">${ic('loader-2', 'w-4 h-4 animate-spin')}Thinking…</div>` : ''}
+    </div>
+    <div class="p-3 border-t border-ink-200 dark:border-ink-800 shrink-0 safe-bottom">
+      <div class="flex gap-2 items-end"><textarea id="chatin" rows="1" placeholder="Ask about this article…" class="${inputCls} max-h-40 resize-none"></textarea>
+      <button data-act="sendChat" ${busy ? 'disabled' : ''} class="${btnPri} !h-10 !w-10 justify-center !px-0">${ic('send-horizontal', 'w-4 h-4 flip-rtl')}</button></div>
+    </div>`;
+}
+
+/* ---------- Synthesis ---------- */
+function synthesisHTML() {
+  const mode = UI.synthMode;
+  return `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+      <div><h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">Synthesis hub</h1><p class="text-sm text-ink-500 mt-1">Aggregate quotes and notes per article, or across articles by research theme. Click any quote to jump to its source.</p></div>
+      <div class="inline-flex p-1 rounded-xl bg-ink-100 dark:bg-ink-900">
+        ${[['topic', 'By theme', 'network'], ['article', 'By article', 'file-text']].map(([k, l, i]) => `<button data-act="synthMode" data-m="${k}" class="h-9 px-3 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 ${mode === k ? 'bg-white dark:bg-ink-800 shadow-sm' : 'text-ink-500'}">${ic(i)}${l}</button>`).join('')}
+      </div>
+    </div>
+    ${mode === 'topic' ? topicSynthHTML() : articleSynthHTML()}
+  </div>`;
+}
+function topicItems(tid) {
+  const out = [];
+  S.articles.forEach(a => {
+    a.highlights.filter(h => h.topicIds.includes(tid)).forEach(h => out.push({ a, h }));
+    a.pageNotes.filter(n => n.topicIds.includes(tid)).forEach(n => out.push({ a, n }));
+  });
+  return out;
+}
+function topicSynthHTML() {
+  if (!UI.synthTopic || !topicOf(UI.synthTopic)) UI.synthTopic = S.topics[0]?.id || null;
+  const t = topicOf(UI.synthTopic); const items = t ? topicItems(t.id) : [];
+  const byArt = new Map(); items.forEach(x => { if (!byArt.has(x.a.id)) byArt.set(x.a.id, []); byArt.get(x.a.id).push(x); });
+  const unassigned = S.articles.reduce((n, a) => n + a.highlights.filter(h => !h.topicIds.length).length, 0);
+  const draft = t && UI.lastDraft[t.id];
+  return `<div class="grid lg:grid-cols-[300px_minmax(0,1fr)] gap-6">
+    <div class="${card} p-3 h-fit lg:sticky lg:top-[73px]">
+      <div class="flex items-center justify-between px-1 mb-2"><span class="${labelCls} !mb-0">Research themes</span><span class="text-[11px] text-ink-400">${unassigned} unassigned quotes</span></div>
+      <div class="space-y-1">${S.topics.map(x => { const n = topicItems(x.id).length; const arts = new Set(topicItems(x.id).map(i => i.a.id)).size; return `<button data-act="pickTopic" data-id="${x.id}" class="w-full text-start px-3 py-2.5 rounded-xl ${UI.synthTopic === x.id ? 'bg-accent-50 dark:bg-accent-500/10 text-accent-800 dark:text-accent-300' : 'hover:bg-ink-100 dark:hover:bg-ink-800'}"><div class="text-sm font-medium flex items-center gap-2">${ic('hash', 'w-3.5 h-3.5 opacity-60')}<span data-raw dir="auto">${esc(x.name)}</span></div><div class="text-[11px] text-ink-500 mt-0.5 ps-5">${n} items · ${arts} article${arts === 1 ? '' : 's'}</div></button>`; }).join('')}</div>
+      <div class="flex gap-2 mt-3"><input id="newtopic" placeholder="New theme…" class="${inputCls} !py-1.5"><button data-act="addTopic" class="${btnPri} !h-9 !px-2.5">${ic('plus')}</button></div>
+    </div>
+    <div class="min-w-0">
+      ${t ? `<div class="${card} p-4 sm:p-5 mb-4">
+        <div class="flex flex-wrap items-start gap-3"><div class="flex-1 min-w-0">
+          <input data-topic="name" value="${esc(t.name)}" class="w-full text-xl font-semibold bg-transparent outline-none">
+          <textarea data-topic="description" rows="1" placeholder="Describe this theme in relation to your thesis…" class="w-full mt-1 text-sm text-ink-500 bg-transparent outline-none resize-none">${esc(t.description || '')}</textarea></div>
+          <div class="flex flex-wrap gap-2">
+            <button data-act="draftTopic" class="${btnPri}" ${UI.busy['topic'] ? 'disabled' : ''}>${UI.busy['topic'] ? ic('loader-2', 'w-4 h-4 animate-spin') : ic('sparkles')}Draft synthesis</button>
+            <button data-act="copyTopicMd" class="${btnCls}">${ic('clipboard-copy')}Markdown</button>
+            <button data-act="deleteTopic" class="${btnCls} !px-2.5 text-rose-600" title="Delete theme">${ic('trash-2')}</button>
+          </div></div>
+        <div class="flex flex-wrap gap-4 mt-3 text-xs text-ink-500"><span>${items.length} items</span><span>${byArt.size} sources</span><span>Platforms: ${[...new Set([...byArt.keys()].flatMap(id => art(id).platforms))].join(', ') || '—'}</span></div>
+      </div>
+      ${draft ? `<div class="${card} p-4 sm:p-5 mb-4 border-accent-200 dark:border-accent-800"><div class="flex items-center mb-2"><span class="${labelCls} !mb-0">${ic('sparkles', 'w-3.5 h-3.5 inline -mt-0.5')} Draft synthesis ${draft.offline ? '(offline scaffold)' : '(Claude)'}</span><button data-act="copyDraft" class="ms-auto ${btnCls} !h-8">${ic('copy')}Copy</button></div><div data-raw dir="auto" class="chat-md text-sm leading-relaxed">${md(draft.text)}</div></div>` : ''}
+      ${byArt.size ? [...byArt.entries()].map(([aid, xs]) => { const a = art(aid); return `<section class="mb-6">
+        <button data-raw dir="auto" data-act="open" data-id="${a.id}" class="text-start mb-2 group"><div class="font-serif font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-400">${esc(a.title)}</div><div class="text-xs text-ink-500">${esc(inText(a))} ${a.platforms.length ? '· ' + a.platforms.join(', ') : ''}</div></button>
+        <div class="grid gap-3 md:grid-cols-2">${xs.map(x => x.h ? quoteItem(a, x.h, { showSource: true }) : noteItem(a, x.n, { showSource: true })).join('')}</div></section>`; }).join('')
+      : `<div class="${card} p-10 text-center text-sm text-ink-500">${ic('network', 'w-7 h-7 mx-auto mb-3 opacity-60')}No quotes in this theme yet. Open a highlight (in the reader or any quote list) and tag it with <b data-raw>#${esc(t.name)}</b>.</div>`}` :
+      `<div class="${card} p-10 text-center text-sm text-ink-500">Create your first research theme on the left.</div>`}
+    </div></div>`;
+}
+function articleSynthHTML() {
+  if (!UI.synthArticle || !art(UI.synthArticle)) UI.synthArticle = UI.articleId || S.articles[0]?.id;
+  const a = art(UI.synthArticle);
+  if (!a) return `<div class="${card} p-10 text-center text-sm text-ink-500">No articles yet.</div>`;
+  const groups = S.colors.map(c => [c, a.highlights.filter(h => h.color === c.key).sort((x, y) => x.para - y.para || x.start - y.start)]).filter(g => g[1].length);
+  return `<div class="${card} p-4 sm:p-5 mb-5 flex flex-wrap gap-3 items-center">
+      <select data-raw data-act-change="synthArticle" class="${inputCls} !w-auto flex-1 min-w-[240px]">${S.articles.map(x => `<option value="${x.id}" ${x.id === a.id ? 'selected' : ''}>${esc(shortAuthors(x))} (${esc(yearOf(x))}) — ${esc(x.title.slice(0, 90))}</option>`).join('')}</select>
+      <button data-act="open" data-id="${a.id}" class="${btnCls}">${ic('book-open')}Open reader</button>
+      <button data-act="copyArticleMd" data-id="${a.id}" class="${btnCls}">${ic('clipboard-copy')}Copy as Markdown</button>
+    </div>
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
+      <div class="min-w-0 space-y-6">
+        ${groups.length ? groups.map(([c, hs]) => `<section><h3 class="flex items-center gap-2 font-semibold mb-2"><span class="w-3 h-3 rounded-full" style="background:${c.hex}"></span>${esc(c.name)} <span class="text-ink-400 font-normal text-sm">${hs.length}</span></h3><div class="space-y-3">${hs.map(h => quoteItem(a, h)).join('')}</div></section>`).join('') : `<div class="${card} p-8 text-center text-sm text-ink-500">No highlights in this article yet.</div>`}
+      </div>
+      <div class="space-y-4">
+        <div class="${card} p-4"><div class="${labelCls}">Article notes</div><div class="space-y-2">${a.pageNotes.length ? a.pageNotes.map(n => noteItem(a, n)).join('') : '<p class="text-sm text-ink-500">None yet.</p>'}</div></div>
+        ${a.critical ? `<div class="${card} p-4"><div class="${labelCls}">Critical commentary</div><p data-raw dir="auto" class="text-sm whitespace-pre-wrap">${esc(a.critical)}</p></div>` : ''}
+        ${a.summary?.thesis ? `<div class="${card} p-4"><div class="${labelCls}">Thesis</div><p data-raw dir="auto" class="text-sm">${esc(a.summary.thesis)}</p><div class="${labelCls} mt-3">Gap</div><p data-raw dir="auto" class="text-sm">${esc(a.summary.gap || '—')}</p></div>` : ''}
+      </div>
+    </div>`;
+}
+
+/* ---------- Global search ---------- */
+function snippet(text, q, r = 90) {
+  const i = text.toLowerCase().indexOf(q.toLowerCase()); if (i < 0) return esc(text.slice(0, r * 2));
+  const s = Math.max(0, i - r), e = Math.min(text.length, i + q.length + r);
+  return (s ? '…' : '') + esc(text.slice(s, i)) + `<mark class="bg-amber-200 dark:bg-amber-500/40 text-inherit rounded px-0.5">${esc(text.slice(i, i + q.length))}</mark>` + esc(text.slice(i + q.length, e)) + (e < text.length ? '…' : '');
+}
+function searchHTML() {
+  const q = UI.globalQ.trim();
+  const head = `<div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8"><h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">Search</h1>`;
+  if (q.length < 2) return head + `<p class="text-sm text-ink-500 mt-2">Type at least two characters in the search bar. Searches titles, authors, abstracts, full texts, highlights, notes and summaries.</p></div>`;
+  const ql = q.toLowerCase(); const R = { meta: [], quotes: [], notes: [], text: [] };
+  S.articles.forEach(a => {
+    if ([a.title, authorsToStr(a.authors), a.journal, a.abstract, ...a.subjectTags, ...a.methodTags].join(' ').toLowerCase().includes(ql)) R.meta.push(a);
+    a.highlights.forEach(h => { if ((h.text + ' ' + h.note).toLowerCase().includes(ql)) R.quotes.push({ a, h }); });
+    a.pageNotes.forEach(n => { if (n.text.toLowerCase().includes(ql)) R.notes.push({ a, text: n.text, kind: 'Article note' }); });
+    if (a.critical.toLowerCase().includes(ql)) R.notes.push({ a, text: a.critical, kind: 'Critical commentary' });
+    SUM_FIELDS.forEach(([k, l]) => { const v = a.summary?.[k] || ''; if (v.toLowerCase().includes(ql)) R.notes.push({ a, text: v, kind: 'Summary · ' + l }); });
+    paraList(a).forEach((p, i) => { if (p.toLowerCase().includes(ql)) R.text.push({ a, p, i }); });
+  });
+  const total = R.meta.length + R.quotes.length + R.notes.length + R.text.length;
+  const sec = (title, icon, n, body) => n ? `<section class="mt-8"><h2 class="flex items-center gap-2 font-semibold mb-3">${ic(icon, 'w-4 h-4 text-accent-600')}${title}<span class="text-ink-400 font-normal text-sm">${n}</span></h2><div class="space-y-2">${body}</div></section>` : '';
+  return head + `<p class="text-sm text-ink-500 mt-2">${total} result${total === 1 ? '' : 's'} for “${esc(q)}”</p>
+    ${sec('Articles', 'library', R.meta.length, R.meta.map(a => `<button data-act="open" data-id="${a.id}" class="w-full text-start ${card} p-4 hover:border-accent-300"><div data-raw dir="auto" class="font-serif font-semibold">${snippet(a.title, q, 200)}</div><div data-raw class="text-xs text-ink-500 mt-1">${esc(inText(a))}</div>${a.abstract.toLowerCase().includes(ql) ? `<p data-raw dir="auto" class="text-sm text-ink-600 dark:text-ink-300 mt-2">${snippet(a.abstract, q)}</p>` : ''}</button>`).join(''))}
+    ${sec('Highlighted quotes', 'highlighter', R.quotes.length, R.quotes.map(({ a, h }) => `<button data-act="goHL" data-id="${h.id}" class="w-full text-start ${card} p-4 hover:border-accent-300 flex gap-3"><span class="w-1.5 rounded-full shrink-0" style="background:${colorOf(h.color).hex}"></span><span data-raw dir="auto" class="min-w-0"><span class="font-serif block">“${snippet(h.text, q, 160)}”</span>${h.note ? `<span class="block text-sm text-ink-500 mt-1">${snippet(h.note, q)}</span>` : ''}<span class="block text-xs text-ink-400 mt-1">${esc(inText(a))} · ${esc(colorOf(h.color).name)}</span></span></button>`).join(''))}
+    ${sec('Notes & summaries', 'notebook-pen', R.notes.length, R.notes.map(({ a, text, kind }) => `<button data-act="open" data-id="${a.id}" class="w-full text-start ${card} p-4 hover:border-accent-300"><div class="text-[11px] font-semibold uppercase tracking-wide text-ink-500"><span>${esc(kind)}</span> · <span data-raw>${esc(inText(a))}</span></div><p data-raw dir="auto" class="text-sm mt-1">${snippet(text, q)}</p></button>`).join(''))}
+    ${sec('Full text', 'file-text', R.text.length, R.text.slice(0, 60).map(({ a, p, i }) => `<button data-act="goPara" data-aid="${a.id}" data-i="${i}" class="w-full text-start ${card} p-4 hover:border-accent-300"><p data-raw dir="auto" class="font-serif text-[15px]">${snippet(p, q)}</p><div data-raw class="text-xs text-ink-400 mt-1">${esc(inText(a))} · ¶${i + 1}</div></button>`).join(''))}
+  </div>`;
+}
+
+/* =========================================================
+   SELECTION & HIGHLIGHTING
+   ========================================================= */
+const elOf = n => n.nodeType === 1 ? n : n.parentElement;
+function offsetIn(root, node, off) { const r = document.createRange(); r.selectNodeContents(root); r.setEnd(node, off); return r.toString().length; }
+function readSelection() {
+  const sel = window.getSelection(); if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const r = sel.getRangeAt(0); const body = $('#reader-body');
+  if (!body || !body.contains(r.commonAncestorContainer)) return null;
+  const pa = elOf(r.startContainer)?.closest('[data-para]'), pb = elOf(r.endContainer)?.closest('[data-para]');
+  const rect = r.getBoundingClientRect();
+  if (!pa || pa !== pb) return { multi: true, rect, text: sel.toString() };
+  const full = pa.textContent; let s = offsetIn(pa, r.startContainer, r.startOffset), e = offsetIn(pa, r.endContainer, r.endOffset);
+  while (s < e && /\s/.test(full[s])) s++; while (e > s && /\s/.test(full[e - 1])) e--;
+  if (e - s < 2) return null;
+  return { para: +pa.dataset.para, start: s, end: e, text: full.slice(s, e), rect };
+}
+function showSelTool(info) {
+  const t = $('#seltool'); UI.sel = info;
+  t.innerHTML = info.multi
+    ? `<span class="text-xs text-ink-500 px-2">Highlights work within one paragraph</span><button data-act="selTranslate" class="h-9 px-2 rounded-xl hover:bg-ink-100 dark:hover:bg-ink-800 inline-flex items-center gap-1 text-xs font-medium">${ic('languages')}Translate</button>`
+    : S.colors.map((c, i) => `<button data-act="selHL" data-c="${c.key}" title="${esc(c.name)} (${i + 1})" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800"><span class="w-5 h-5 rounded-full ring-2 ring-white dark:ring-ink-900 shadow" style="background:${c.hex}"></span></button>`).join('') +
+      `<span class="w-px h-6 bg-ink-200 dark:bg-ink-700 mx-0.5"></span>
+      <button data-act="selNote" title="Highlight + note" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('sticky-note')}</button>
+      <button data-act="selTranslate" title="Translate EN ⇄ AR" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('languages')}</button>
+      <button data-act="selCopy" title="Copy with citation" class="w-9 h-9 rounded-xl grid place-items-center hover:bg-ink-100 dark:hover:bg-ink-800">${ic('copy')}</button>`;
+  t.classList.remove('hidden'); icons(); positionSelTool();
+}
+function positionSelTool() {
+  const t = $('#seltool'); if (t.classList.contains('hidden') || !UI.sel) return;
+  const sel = window.getSelection(); const rect = sel && sel.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : UI.sel.rect;
+  const w = t.offsetWidth, h = t.offsetHeight, vw = innerWidth, touch = matchMedia('(pointer: coarse)').matches;
+  let top = touch ? rect.bottom + 14 : rect.top - h - 10; if (top < 110) top = rect.bottom + 14; if (top + h > innerHeight - 80) top = Math.max(110, rect.top - h - 10);
+  let left = rect.left + rect.width / 2 - w / 2; left = Math.max(8, Math.min(vw - w - 8, left));
+  t.style.top = top + 'px'; t.style.left = left + 'px';
+}
+function hideSelTool() { const t = $('#seltool'); if (t) t.classList.add('hidden'); UI.sel = null; }
+const onSelChange = debounce(() => { if (UI.view !== 'reader') return; const i = readSelection(); if (i) showSelTool(i); else if (!$('#seltool').matches(':hover')) hideSelTool(); }, 220);
+document.addEventListener('selectionchange', onSelChange);
+addEventListener('scroll', () => positionSelTool(), { passive: true });
+
+function addHighlight(color, openEditor = false) {
+  const a = art(); const s = UI.sel; if (!a || !s || s.multi) return;
+  const clash = a.highlights.some(h => h.para === s.para && s.start < h.end && s.end > h.start);
+  if (clash) { toast('Overlaps an existing highlight — edit that one instead.', 'error'); return; }
+  const h = { id: uid(), para: s.para, start: s.start, end: s.end, color, text: s.text, note: '', topicIds: [], page: '', created: new Date().toISOString() };
+  a.highlights.push(h); save(); window.getSelection().removeAllRanges(); hideSelTool();
+  renderBody(); renderPanel(); if (openEditor) openHLModal(h.id);
+  else toast(`Highlighted · ${colorOf(color).name}`);
+}
+
+/* =========================================================
+   TRANSLATION
+   ========================================================= */
+async function translate(text) {
+  const toAr = !AR_RE.test(text);
+  const out = await claude('You are an expert academic translator (English ⇄ Modern Standard Arabic) specialising in media and communication studies. Translate faithfully, keep established Arabic academic terminology (e.g. "تحليل الخطاب", "الأطر البصرية"), keep proper names and citations intact, and output only the translation.',
+    [{ role: 'user', content: `Translate into ${toAr ? 'Arabic' : 'English'}:\n\n${text}` }], 1500);
+  return { text: out, dir: toAr ? 'rtl' : 'ltr' };
+}
+function noKeyTranslate(text) {
+  const toAr = !AR_RE.test(text);
+  const gt = `https://translate.google.com/?sl=${toAr ? 'en' : 'ar'}&tl=${toAr ? 'ar' : 'en'}&op=translate&text=${encodeURIComponent(text.slice(0, 4500))}`;
+  openModal(`<h3 class="text-lg font-semibold mb-2 flex items-center gap-2">${ic('languages')}Academic translation</h3>
+    <p class="text-sm text-ink-600 dark:text-ink-300">In-app translation runs through Claude and needs an API key (Settings → Claude). Without one, you can open the passage in Google Translate — less reliable for disciplinary terminology.</p>
+    <blockquote data-raw dir="auto" class="mt-3 font-serif text-sm border-s-4 border-ink-200 dark:border-ink-700 ps-3 text-ink-600 dark:text-ink-300 max-h-40 overflow-auto">${esc(text)}</blockquote>
+    <div class="flex flex-wrap justify-end gap-2 mt-5"><button data-act="openSettings" class="${btnCls}">${ic('key-round')}Add API key</button><a href="${esc(gt)}" target="_blank" rel="noopener" class="${btnPri}">${ic('external-link')}Open in Google Translate</a></div>`);
+}
+
+/* =========================================================
+   OFFLINE ASSISTANT ENGINE
+   ========================================================= */
+function related(a, n = 3) {
+  return S.articles.filter(x => x.id !== a.id).map(x => {
+    const shared = { platforms: x.platforms.filter(p => a.platforms.includes(p)), subject: x.subjectTags.filter(t => a.subjectTags.includes(t)), method: x.methodTags.filter(t => a.methodTags.includes(t)), topics: [...new Set(x.highlights.flatMap(h => h.topicIds))].filter(t => a.highlights.some(h => h.topicIds.includes(t))) };
+    return { x, shared, score: shared.platforms.length * 2 + shared.subject.length * 2 + shared.method.length + shared.topics.length * 3 };
+  }).filter(r => r.score > 0).sort((p, q) => q.score - p.score).slice(0, n);
+}
+const lc1 = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+const stripLead = s => String(s || '').replace(/^(this (article|paper|study) (argues|contends|examines|proposes) (that )?|in this paper,? we contend that |we (argue|contend) that )/i, '').replace(/\.$/, '');
+const PLATFORM_NOTES_AR = {
+  'YouTube': 'أخذ العينات وفق عدد المشاهدات أو قوائم الرائج يُفرط في تمثيل القنوات المضخَّمة أصلاً، ومخرجات التوصية مُخصَّصة، فملاحظة الباحث ليست محايدة.',
+  'TikTok': 'صفحة «لك» مُخصَّصة بدرجة عالية، والوصول إلى واجهة البحث مقيَّد جغرافياً، وإعادة بناء السلاسل يدوياً تثير أسئلة حول قابلية التكرار.',
+  'X/Twitter': 'تغييرات تسعير الواجهة البرمجية وشروط الوصول بعد 2023 تؤثر في اكتمال البيانات وقابلية التكرار؛ قارن نافذة الجمع بتلك التغييرات.',
+  'Instagram': 'الصيغ الزائلة (القصص) وقيود واجهة Meta تقع غالباً خارج المدوَّنة، والمحتوى البصري يتطلب مخطط ترميز بصرياً صريحاً.',
+  'Facebook': 'إغلاق CrowdTangle (2024) وقواعد الوصول إلى Meta Content Library تحدد ما يمكن جمعه ومن يستطيع جمعه.',
+  'Telegram': 'أخذ العينات من القنوات العامة يُغفل ديناميات المجموعات الخاصة، وعيّنة كرة الثلج عبر إعادة التوجيه تنحاز إلى القنوات المترابطة.',
+  'Podcasts': 'البيانات الصوتية تستلزم خيارات تفريغ هي نفسها تأويلية، والاكتشاف تتوسطه قوائم المنصات.',
+  'News Outlets': 'منطق اختيار المنافذ (الانتشار، التوجه، الملكية) يحتاج إلى تسويغ، وجدران الاشتراك قد تُحدث انحيازاً في المدوَّنات الرقمية.',
+  'Multi-platform': 'المقارنة تحتاج إلى وحدة تحليل مشتركة عبر الصيغ، وإمكانات المنصات تتداخل مع أثر المنفذ أو الفاعل.',
+};
+function offlineReply(a, kind, text) {
+  const sm = a.summary?.thesis ? a.summary : heuristicSummary(a);
+  const byKey = k => a.highlights.filter(h => h.color === k);
+  const src = L('→ source', 'المصدر');
+  const q = h => `> “${h.text}” [${src}](#hl:${h.id})${h.note ? `\n- *${L('Your note', 'ملاحظتك')}:* ${h.note}` : ''}`;
+  const rel = related(a);
+  const pl = arr => arr.map(tr).join(L(', ', '، ')) || '—';
+  const notes = LANG === 'ar' ? PLATFORM_NOTES_AR : PLATFORM_NOTES;
+  if (kind === 'analyze') {
+    return `## ${L('Methodology appraisal', 'تقييم المنهجية')} — ${inText(a)}
+**${L('Design as reported', 'التصميم كما ورد')}:** ${sm.methodology || L('No method statement detected — add the full text or summary.', 'لم تُرصد عبارة منهجية — أضف النص الكامل أو الملخص.')}
+**${L('Method tags', 'وسوم المنهج')}:** ${a.methodTags.join(', ') || '—'} · **${L('Platforms', 'المنصات')}:** ${pl(a.platforms)}
+${byKey('green').length ? `### ${L('Your methodology highlights', 'تظليلاتك المنهجية')}\n` + byKey('green').map(q).join('\n') : ''}
+### ${L('Questions to put to this design', 'أسئلة تُطرح على هذا التصميم')}
+- **${L('Sampling logic', 'منطق العيّنة')}:** ${L('how were cases selected, and does the selection criterion reproduce the phenomenon under study (e.g. popularity, virality)?', 'كيف اختيرت الحالات؟ وهل يعيد معيار الاختيار إنتاج الظاهرة المدروسة نفسها (كالشعبية أو الانتشار)؟')}
+${a.platforms.map(p => notes[p] ? `- **${tr(p)}:** ${notes[p]}` : '').filter(Boolean).join('\n')}
+- **${L('Analytic transparency', 'شفافية التحليل')}:** ${L('coding procedure, reliability or reflexivity statement, and how interpretation moved from data to claims.', 'إجراءات الترميز، وبيان الموثوقية أو الانعكاسية، وكيف انتقل التأويل من البيانات إلى الادعاءات.')}
+- **${L('Ethics', 'الأخلاقيات')}:** ${L('treatment of public-but-personal data, anonymisation of creators and commenters, consent for interviews.', 'التعامل مع البيانات العامة ذات الطابع الشخصي، وإخفاء هوية صنّاع المحتوى والمعلّقين، والموافقة المستنيرة في المقابلات.')}
+- **${L('Transferability', 'قابلية النقل')}:** ${L('language, region and time window — what would change in your own corpus?', 'اللغة والمنطقة والنافذة الزمنية — ما الذي سيتغير في مدوّنتك أنت؟')}
+*${L('Offline mode: assembled from your summary, tags and highlights. Add a Claude API key in Settings for a full critique.', 'وضع دون اتصال: مُجمَّع من ملخصك ووسومك وتظليلاتك. أضف مفتاح Claude API في الإعدادات لنقد كامل.')}*`;
+  }
+  if (kind === 'gap') {
+    return `## ${L('Research gap', 'الفجوة البحثية')} — ${inText(a)}
+**${L('Gap as claimed', 'الفجوة كما يطرحها المقال')}:** ${sm.gap || L('No explicit gap statement detected in the text.', 'لم تُرصد عبارة صريحة عن الفجوة في النص.')}
+${byKey('yellow').filter(h => CUES.gap.test(h.text)).map(q).join('\n')}
+### ${L('Test it against your library', 'اختبرها في مكتبتك')}
+${rel.length ? rel.map(r => L(`- ${inText(r.x)} shares ${[...r.shared.platforms, ...r.shared.subject, ...r.shared.method].join(', ') || 'themes'} — does it already partly fill this gap?`, `- ${inText(r.x)} يشترك في: ${[...r.shared.platforms.map(tr), ...r.shared.subject, ...r.shared.method].join('، ') || 'محاور'} — هل يسدّ هذه الفجوة جزئياً؟`)).join('\n') : L('- No overlapping articles yet; add more sources tagged with the same platforms or methods.', '- لا توجد مقالات متقاطعة بعد؛ أضف مصادر موسومة بالمنصات أو المناهج نفسها.')}
+### ${L('Openings for your project', 'منافذ لمشروعك')}
+- ${L('Shift the **platform or language context** (e.g. Arabic-language or non-Western creator cultures).', 'غيّر **السياق المنصّاتي أو اللغوي** (مثل المحتوى العربي أو ثقافات صنّاع المحتوى غير الغربية).')}
+- ${L('Shift the **unit of analysis** (single text → chains, comment ecologies, cross-platform circulation).', 'غيّر **وحدة التحليل** (من نص منفرد إلى سلاسل، أو بيئات التعليقات، أو التداول عبر المنصات).')}
+- ${L('Shift the **method** (add interviews/visual analysis to a text-only design, or vice versa).', 'غيّر **المنهج** (أضف مقابلات أو تحليلاً بصرياً إلى تصميم نصي فقط، أو العكس).')}
+*${L('Offline scaffold — refine with your own reading.', 'هيكل أولي دون اتصال — طوّره بقراءتك الخاصة.')}*`;
+  }
+  if (kind === 'synth') {
+    if (!rel.length) return L(`No other article in your library shares platforms, tags or themes with ${inText(a)} yet. Tag more articles (Details tab) or assign highlights to themes to enable synthesis.`, `لا يوجد في مكتبتك بعدُ مقال آخر يشترك مع ${inText(a)} في المنصات أو الوسوم أو المحاور. أضف وسوماً لمقالات أخرى (تبويب التفاصيل) أو اربط التظليلات بمحاور لتمكين التوليف.`);
+    return `## ${L('Synthesis', 'التوليف')} — ${inText(a)} ${L('and your library', 'ومكتبتك')}
+${rel.map(r => `### ${inText(r.x)}
+- **${L('Shared', 'المشترك')}:** ${[...r.shared.platforms.map(p => L('platform: ', 'منصة: ') + tr(p)), ...r.shared.subject, ...r.shared.method.map(m => L('method: ', 'منهج: ') + m), ...r.shared.topics.map(t => '#' + (topicOf(t)?.name || ''))].join(' · ')}
+- **${L('Their thesis', 'أطروحتهم')}:** ${r.x.summary?.thesis || r.x.abstract.slice(0, 220) || '—'}
+${r.x.highlights.filter(h => h.color === 'yellow').slice(0, 2).map(h => `> “${h.text}” [${src}](#hl:${h.id})`).join('\n')}`).join('\n')}
+### ${L('Points to develop', 'نقاط للتطوير')}
+- ${L('**Convergence:** both treat platform affordances as shaping, not just carrying, discourse — make this explicit.', '**التقاطع:** كلاهما يعامل إمكانات المنصة بوصفها مُشكِّلة للخطاب لا ناقلة له فحسب — اجعل ذلك صريحاً.')}
+- ${L('**Divergence:** compare units of analysis and data access; that is where your contribution can sit.', '**الاختلاف:** قارن وحدات التحليل وإمكانات الوصول إلى البيانات؛ هناك يمكن أن تتموضع مساهمتك.')}
+*${L('Offline mode — connections inferred from shared tags, platforms and themes.', 'وضع دون اتصال — الروابط مستنتجة من الوسوم والمنصات والمحاور المشتركة.')}*`;
+  }
+  if (kind === 'lr') {
+    const t1 = stripLead(sm.thesis);
+    let p = `${inText(a, '', true)} argue${(a.authors || []).length > 1 ? '' : 's'} that ${lc1(t1)}.`;
+    rel.slice(0, 2).forEach((r, i) => { const t = stripLead(r.x.summary?.thesis || r.x.abstract); if (t) p += ` ${i === 0 ? 'This resonates with' : 'Similarly,'} ${i === 0 ? inText(r.x, '', true) + ', who contend' + ((r.x.authors || []).length > 1 ? '' : 's') + ' that ' + lc1(t) : inText(r.x, '', true) + ' show' + ((r.x.authors || []).length > 1 ? '' : 's') + ' that ' + lc1(t)}.`; });
+    if (sm.gap) p += ` Yet, as ${inText(a, '', true)} note${(a.authors || []).length > 1 ? '' : 's'}, ${lc1(stripLead(sm.gap.split(/(?<=\.)\s/)[0]))}.`;
+    return `## ${L('Draft paragraph (scaffold)', 'مسودة فقرة (هيكل أولي)')}\n${p}\n\n*${L('Offline scaffold stitched from summaries — rewrite in your own voice and check every claim against the source.', 'هيكل أولي دون اتصال مُركَّب من الملخصات، بالإنجليزية لأنه موجّه إلى أطروحتك — أعد صياغته بأسلوبك وتحقّق من كل ادعاء في مصدره.')}*`;
+  }
+  const terms = (text.toLowerCase().match(/[\p{L}-]{4,}/gu) || []).filter(w => !STOP.has(w));
+  if (!terms.length) return L('Ask a more specific question, or use a quick action above.', 'اطرح سؤالاً أدق، أو استخدم أحد الإجراءات السريعة أعلاه.');
+  const scored = [];
+  S.articles.forEach(x => {
+    x.highlights.forEach(h => { const s = terms.filter(t => (h.text + ' ' + h.note).toLowerCase().includes(t)).length; if (s) scored.push({ s: s + 1, md: `> “${h.text}” — ${inText(x)} [${src}](#hl:${h.id})` }); });
+    paraList(x).forEach((p, i) => { const s = terms.filter(t => p.toLowerCase().includes(t)).length; if (s >= Math.min(2, terms.length)) scored.push({ s, md: `- ${p.slice(0, 220)}… — ${inText(x)} [¶${i + 1}](#p:${x.id}:${i})` }); });
+  });
+  scored.sort((p, q) => q.s - p.s);
+  return scored.length
+    ? `**${L('Most relevant passages in your library', 'أكثر المقاطع صلة في مكتبتك')}** ${L('for', 'بخصوص')}: *${text.slice(0, 120)}*\n\n${scored.slice(0, 6).map(r => r.md).join('\n')}\n\n*${L('Offline retrieval only — add an API key for interpretive answers.', 'استرجاع دون اتصال فقط — أضف مفتاح API لإجابات تأويلية.')}*`
+    : L('Nothing in your library matches those terms. Try different keywords, or add a Claude API key for open-ended discussion.', 'لا يوجد في مكتبتك ما يطابق هذه المصطلحات. جرّب كلمات أخرى، أو أضف مفتاح Claude API لنقاش مفتوح.');
+}
+const QUICK_PROMPTS = {
+  analyze: 'Critically appraise this article’s methodology as a PhD supervisor would: research design, sampling and data access, analytic procedure, ethics, platform-specific limitations, and what this means for how I can (and cannot) use its findings. Be concrete and refer to the text.',
+  gap: 'Identify the research gap this article claims to address, evaluate how convincingly it is established, and propose 2–3 precise openings it leaves for a doctoral project on digital media, political discourse and visual framing (including Arabic-language contexts).',
+  synth: 'Synthesise this article with the other works in my library (listed in the context): convergences, tensions, differences in units of analysis and method, and a suggested thematic grouping for my literature review.',
+  lr: 'Draft one literature-review paragraph (~200 words, UK English, University of Sheffield Harvard in-text citations exactly as given) positioning this article in relation to relevant works in my library. Use only the supplied sources; end with the gap it points to.',
+};
+async function askAssistant(a, kind, text) {
+  const key = 'chat-' + a.id; S.chats[a.id] = S.chats[a.id] || [];
+  const label = kind === 'free' ? text : QUICK.find(x => x[0] === kind)[1];
+  const content = kind === 'free' ? text : QUICK_PROMPTS[kind];
+  S.chats[a.id].push({ role: 'user', content, label, quick: kind === 'free' ? null : kind }); UI.busy[key] = true; save(); renderPanel();
+  try {
+    let reply, offline = false;
+    if (hasKey()) {
+      const sys = supSystem() + '\n\n' + articleContext(a) + '\n\nOTHER WORKS IN MY LIBRARY:\n' + (libraryContext(a.id) || '—');
+      const msgs = S.chats[a.id].slice(-12).map(m => ({ role: m.role, content: m.content }));
+      reply = await claude(sys, msgs, 1800);
+    } else { reply = offlineReply(a, kind, text); offline = true; }
+    S.chats[a.id].push({ role: 'assistant', content: reply, offline });
+  } catch (e) {
+    S.chats[a.id].push({ role: 'assistant', content: L(`**Request failed:** ${e.message}. Falling back to offline mode:\n\n`, `**تعذّر الطلب:** ${e.message}. التحويل إلى الوضع دون اتصال:\n\n`) + offlineReply(a, kind, text), offline: true });
+  }
+  UI.busy[key] = false; save(); if (UI.view === 'reader' && UI.articleId === a.id) renderPanel();
+}
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+function openModal(html, wide = false) {
+  $('#modal-root').innerHTML = `<div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4" data-modal>
+    <div class="absolute inset-0 bg-ink-950/50 backdrop-blur-sm" data-act="closeModal"></div>
+    <div class="relative w-full ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'} max-h-[92dvh] overflow-y-auto scroll-thin bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 safe-bottom">
+      <button data-act="closeModal" class="absolute end-3 top-3 w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800">${ic('x')}</button>${html}</div></div>`;
+  icons();
+}
+const closeModal = () => { $('#modal-root').innerHTML = ''; };
+
+function topicToggles(selected, dataAct) {
+  return `<div class="flex flex-wrap gap-1.5">${S.topics.map(t => `<button data-act="${dataAct}" data-t="${t.id}" class="h-8 px-2.5 rounded-lg text-xs font-medium border ${selected.includes(t.id) ? 'bg-accent-700 border-accent-700 text-white' : 'border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800'}">#<span data-raw dir="auto">${esc(t.name)}</span></button>`).join('')}</div>
+  <div class="flex gap-2 mt-2"><input id="modal-newtopic" placeholder="New theme…" class="${inputCls} !py-1.5"><button data-act="modalAddTopic" class="${btnCls} !h-9">${ic('plus')}</button></div>`;
+}
+let MODAL = {};
+function openHLModal(id) {
+  const a = S.articles.find(x => x.highlights.some(h => h.id === id)); if (!a) return;
+  const h = a.highlights.find(x => x.id === id); MODAL = { type: 'hl', aid: a.id, id, topicIds: [...h.topicIds], color: h.color };
+  openModal(`<h3 class="text-lg font-semibold mb-1">Highlight</h3><p data-raw dir="auto" class="text-xs text-ink-500 mb-4">${esc(inText(a))} · ${esc(a.title.slice(0, 80))}</p>
+    <blockquote data-raw dir="auto" class="font-serif text-[15px] leading-relaxed border-s-4 ps-3 mb-4" style="border-color:${colorOf(h.color).hex}">“${esc(h.text)}”</blockquote>
+    <label class="${labelCls}">Category</label>
+    <div id="m-colors" class="flex flex-wrap gap-1.5 mb-4">${S.colors.map(c => `<button data-act="mColor" data-c="${c.key}" class="h-8 px-2.5 rounded-lg text-xs font-medium border inline-flex items-center gap-1.5 ${h.color === c.key ? 'ring-2 ring-accent-500 border-transparent' : 'border-ink-200 dark:border-ink-700'}"><span class="w-3 h-3 rounded-full" style="background:${c.hex}"></span>${esc(c.name)}</button>`).join('')}</div>
+    <label class="${labelCls}">Note</label><textarea id="m-note" rows="3" class="${inputCls} mb-4" placeholder="Why does this matter for your argument?">${esc(h.note)}</textarea>
+    <div class="grid grid-cols-3 gap-3 mb-4"><div><label class="${labelCls}">Page</label><input id="m-page" value="${esc(h.page)}" placeholder="p." class="${inputCls}"></div><div class="col-span-2"><label class="${labelCls}">Citation</label><div data-raw class="text-sm h-[38px] flex items-center text-ink-600 dark:text-ink-300">${esc(inText(a, h.page))}</div></div></div>
+    <label class="${labelCls}">Research themes (cross-article synthesis)</label><div id="m-topics">${topicToggles(MODAL.topicIds, 'mTopic')}</div>
+    <div class="flex flex-wrap gap-2 mt-6">
+      <button data-act="mDeleteHL" class="${btnCls} text-rose-600">${ic('trash-2')}Delete</button>
+      <button data-act="mTranslateHL" class="${btnCls}">${ic('languages')}Translate</button>
+      <button data-act="goHL" data-id="${h.id}" class="${btnCls}">${ic('locate-fixed')}Source</button>
+      <button data-act="mSaveHL" class="${btnPri} ms-auto">${ic('check')}Save</button>
+    </div>`);
+}
+function openNoteModal(aid, id) {
+  const a = art(aid); const n = a.pageNotes.find(x => x.id === id); MODAL = { type: 'note', aid, id, topicIds: [...n.topicIds] };
+  openModal(`<h3 class="text-lg font-semibold mb-4">Article note</h3>
+    <textarea id="m-note" rows="5" class="${inputCls} mb-4">${esc(n.text)}</textarea>
+    <label class="${labelCls}">Research themes</label><div id="m-topics">${topicToggles(MODAL.topicIds, 'mTopic')}</div>
+    <div class="flex gap-2 mt-6"><button data-act="mDeleteNote" class="${btnCls} text-rose-600">${ic('trash-2')}Delete</button><button data-act="mSaveNote" class="${btnPri} ms-auto">${ic('check')}Save</button></div>`);
+}
+function openAddModal() {
+  MODAL = { type: 'add', platforms: [], authors: [] };
+  const tab = UI.addTab;
+  openModal(`<h3 class="text-xl font-semibold mb-1">Add an article</h3><p class="text-sm text-ink-500 mb-4">DOI look-up uses Crossref’s open API. Paywalled full text can’t be fetched from the browser — open it via EZproxy and paste the text.</p>
+    <div class="inline-flex p-1 rounded-xl bg-ink-100 dark:bg-ink-800 mb-4">${[['doi', 'DOI / URL', 'link'], ['paste', 'Paste text', 'clipboard-paste']].map(([k, l, i]) => `<button data-act="addTab" data-t="${k}" class="h-9 px-3 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 ${tab === k ? 'bg-white dark:bg-ink-900 shadow-sm' : 'text-ink-500'}">${ic(i)}${l}</button>`).join('')}</div>
+    ${tab === 'doi' ? `<div class="flex gap-2"><input id="f-src" placeholder="10.1177/14614448… or https://doi.org/… or article URL" class="${inputCls}"><button data-act="fetchMeta" class="${btnPri} shrink-0">${ic('download-cloud')}Fetch</button></div>
+      <div id="f-proxy" class="text-xs text-ink-500 mt-2"></div>`
+      : `<textarea id="f-paste" rows="6" class="${inputCls}" placeholder="Paste the article text (title, authors, abstract, body)…"></textarea>
+      <div class="flex flex-wrap gap-2 mt-2"><button data-act="pasteExtract" data-mode="heuristic" class="${btnCls}">${ic('scan-text')}Extract metadata (offline)</button><button data-act="pasteExtract" data-mode="claude" class="${btnPri}">${ic('sparkles')}Extract with Claude</button></div>`}
+    <div class="grid grid-cols-6 gap-3 mt-5 pt-5 border-t border-ink-200 dark:border-ink-800">
+      <div class="col-span-6"><label class="${labelCls}">Title *</label><input id="f-title" class="${inputCls}"></div>
+      <div class="col-span-6"><label class="${labelCls}">Authors (Family, Given; Family, Given)</label><input id="f-authors" class="${inputCls}"></div>
+      <div class="col-span-2"><label class="${labelCls}">Year</label><input id="f-year" class="${inputCls}"></div>
+      <div class="col-span-2"><label class="${labelCls}">Volume</label><input id="f-volume" class="${inputCls}"></div>
+      <div class="col-span-2"><label class="${labelCls}">Issue</label><input id="f-issue" class="${inputCls}"></div>
+      <div class="col-span-4"><label class="${labelCls}">Journal / Source</label><input id="f-journal" class="${inputCls}"></div>
+      <div class="col-span-2"><label class="${labelCls}">Pages</label><input id="f-pages" class="${inputCls}"></div>
+      <div class="col-span-6 sm:col-span-3"><label class="${labelCls}">DOI</label><input id="f-doi" class="${inputCls}"></div>
+      <div class="col-span-6 sm:col-span-3"><label class="${labelCls}">URL</label><input id="f-url" class="${inputCls}"></div>
+      <div class="col-span-6"><label class="${labelCls}">Abstract</label><textarea id="f-abstract" rows="3" class="${inputCls}"></textarea></div>
+      <div class="col-span-6"><label class="${labelCls}">Full text (paragraphs separated by a blank line)</label><textarea id="f-content" rows="5" class="${inputCls}" placeholder="Optional now — you can add it later from the reader."></textarea></div>
+      <div class="col-span-6"><label class="${labelCls}">Studied platform(s)</label><div id="f-platforms" class="flex flex-wrap gap-1.5">${PLATFORMS.map(p => `<button data-act="fPlatform" data-p="${esc(p)}" class="h-8 px-2.5 rounded-lg text-xs font-medium border border-ink-200 dark:border-ink-700">${esc(p)}</button>`).join('')}</div></div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6"><button data-act="closeModal" class="${btnCls}">Cancel</button><button data-act="saveNew" class="${btnPri}">${ic('check')}Add to library</button></div>`, true);
+}
+function fillForm(m) {
+  const set = (k, v) => { const el = $('#f-' + k); if (el && v != null && v !== '') el.value = v; };
+  set('title', m.title); set('year', m.year); set('journal', m.journal); set('volume', m.volume); set('issue', m.issue); set('pages', m.pages); set('doi', m.doi); set('url', m.url); set('abstract', m.abstract); set('content', m.content);
+  if (m.authors?.length) set('authors', authorsToStr(m.authors));
+  const src = m.doi ? 'https://doi.org/' + m.doi : m.url; const p = $('#f-proxy');
+  if (p && src) { p.innerHTML = `EZproxy link: <a data-raw class="underline text-accent-600 break-all" target="_blank" rel="noopener" href="${esc(S.settings.proxy + src)}">${esc(S.settings.proxy + src)}</a>`; }
+}
+async function fetchCrossref(input) {
+  const m = input.match(DOI_RE); if (!m) return null;
+  const doi = decodeURIComponent(m[0]).replace(/[.,;)\]]+$/, '');
+  const r = await fetch('https://api.crossref.org/works/' + encodeURIComponent(doi));
+  if (!r.ok) throw new Error(r.status === 404 ? 'DOI not found in Crossref' : 'Crossref error ' + r.status);
+  const w = (await r.json()).message;
+  const dp = (w.issued || w['published-print'] || w['published-online'] || {})['date-parts'];
+  return {
+    title: (w.title || [])[0] || '', authors: (w.author || []).map(x => ({ family: x.family || x.name || '', given: x.given || '' })),
+    year: dp?.[0]?.[0] ? String(dp[0][0]) : '', journal: (w['container-title'] || [])[0] || '', volume: w.volume || '', issue: w.issue || '', pages: w.page || '', doi: w.DOI || doi,
+    abstract: (w.abstract || '').replace(/<jats:title>[\s\S]*?<\/jats:title>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), url: w.URL || ''
+  };
+}
+function openSettings() {
+  openModal(`<h3 class="text-xl font-semibold mb-5 flex items-center gap-2">${ic('settings-2', 'w-5 h-5')}Settings</h3>
+    <section class="mb-6"><h4 class="font-semibold mb-2">Language</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label class="${labelCls}">Interface</label><div class="flex p-1 rounded-xl bg-ink-100 dark:bg-ink-800">${[['en', 'English'], ['ar', 'العربية']].map(([k, l]) => `<button data-act="setLang" data-l="${k}" class="flex-1 h-9 rounded-lg text-sm font-medium ${LANG === k ? 'bg-white dark:bg-ink-900 shadow-sm' : 'text-ink-500'}"><span data-raw>${l}</span></button>`).join('')}</div></div>
+        <div><label class="${labelCls}">Claude output language</label><select data-setting="aiLang" class="${inputCls}"><option value="en" ${S.settings.aiLang !== 'ar' ? 'selected' : ''}>English</option><option value="ar" ${S.settings.aiLang === 'ar' ? 'selected' : ''}>Arabic</option></select></div>
+      </div>
+      <p class="text-xs text-ink-500 mt-1.5">Article texts, quotes and references always stay in their original language.</p></section>
+    ${SYNC_ON && SESSION ? `<section class="mb-6"><h4 class="font-semibold mb-2">Account &amp; sync</h4>
+      <div class="rounded-xl border border-ink-200 dark:border-ink-800 p-3 flex flex-wrap items-center gap-2">
+        <div class="min-w-0 flex-1"><div data-raw dir="ltr" class="text-sm font-medium truncate text-start">${esc(SESSION.user.email || '')}</div><div class="text-xs text-ink-500">${SYNC.lastAt ? 'Last synced' : 'Not synced yet'}${SYNC.lastAt ? ` <span data-raw>${SYNC.lastAt.toLocaleTimeString(LANG === 'ar' ? 'ar-u-nu-latn' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</span>` : ''}</div></div>
+        <button data-act="syncNow" class="${btnCls}">${ic('refresh-cw')}Sync now</button>
+        <button data-act="signOut" class="${btnCls} text-rose-600">${ic('log-out')}Sign out</button>
+      </div>
+      <p class="text-xs text-ink-500 mt-1.5">Interface language, theme and reading size are set per device; everything else syncs.</p></section>` : ''}
+    <section class="mb-6"><h4 class="font-semibold mb-1">Highlighter categories</h4><p class="text-xs text-ink-500 mb-3">Rename or recolour; existing highlights follow.</p>
+      <div class="space-y-2">${S.colors.map((c, i) => `<div class="flex items-center gap-2"><input type="color" value="${c.hex}" data-color-hex="${i}" class="w-10 h-10 rounded-lg border border-ink-200 dark:border-ink-700 bg-transparent cursor-pointer"><input value="${esc(c.name)}" data-color-name="${i}" class="${inputCls}"><span class="text-xs text-ink-400 w-6 text-center">${i + 1}</span>${S.colors.length > 2 ? `<button data-act="rmColor" data-i="${i}" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600" title="Remove">${ic('trash-2')}</button>` : ''}</div>`).join('')}</div>
+      ${S.colors.length < 8 ? `<button data-act="addColor" class="${btnCls} mt-2">${ic('plus')}Add category</button>` : ''}</section>
+    <section class="mb-6"><h4 class="font-semibold mb-1">University of Sheffield library access</h4>
+      <label class="${labelCls} mt-2">EZproxy prefix</label><input data-setting="proxy" value="${esc(S.settings.proxy)}" class="${inputCls}">
+      <p class="text-xs text-ink-500 mt-1.5">Prepended to DOI/URL links. The default follows the OCLC-hosted pattern most UK libraries use — confirm the exact prefix with the <a class="underline" href="https://www.sheffield.ac.uk/library" target="_blank" rel="noopener">Library</a>.</p></section>
+    ${SYNC_ON ? `<section class="mb-6"><h4 class="font-semibold mb-1">Claude (summaries, translation, assistant)</h4>
+      <label class="${labelCls} mt-2">Model</label><input data-setting="model" value="${esc(S.settings.model)}" class="${inputCls}">
+      <p class="text-xs text-ink-500 mt-1.5">Runs through your private server function. The API key lives on the server and never reaches the browser.</p>
+      <button data-act="testClaude" class="${btnCls} mt-2">${ic('plug-zap')}Test connection</button></section>` : `<section class="mb-6"><h4 class="font-semibold mb-1">Claude (summaries, translation, assistant)</h4>
+      <label class="${labelCls} mt-2">Anthropic API key</label><input type="password" data-setting="apiKey" value="${esc(S.settings.apiKey)}" placeholder="sk-ant-…" class="${inputCls}" autocomplete="off">
+      <label class="${labelCls} mt-3">Model</label><input data-setting="model" value="${esc(S.settings.model)}" class="${inputCls}">
+      <p class="text-xs text-ink-500 mt-1.5">Called directly from your browser; the key is stored in this browser’s localStorage only. Use a key with a spend limit, and don’t use this on shared machines.</p></section>`}
+    <section><h4 class="font-semibold mb-2">Data</h4><div class="flex flex-wrap gap-2">
+      <button data-act="exportJSON" class="${btnCls}">${ic('download')}Export backup (.json)</button>
+      <label class="${btnCls} cursor-pointer">${ic('upload')}Import backup<input type="file" accept="application/json" id="importfile" class="hidden"></label>
+      ${SYNC_ON ? '' : `<button data-act="resetAll" class="${btnCls} text-rose-600">${ic('rotate-ccw')}Reset to samples</button>`}</div></section>`);
+}
+function openTextEditor() {
+  const a = art();
+  openModal(`<h3 class="text-lg font-semibold mb-1">Full text</h3><p class="text-xs text-ink-500 mb-3">Separate paragraphs with a blank line. Highlights re-anchor by matching their quoted text.</p>
+    <textarea id="m-text" rows="16" class="${inputCls} font-serif !text-[15px] leading-relaxed">${esc(paraList(a).join('\n\n'))}</textarea>
+    <div class="flex justify-end gap-2 mt-4"><button data-act="closeModal" class="${btnCls}">Cancel</button><button data-act="saveText" class="${btnPri}">${ic('check')}Save text</button></div>`, true);
+}
+
+/* =========================================================
+   MARKDOWN EXPORTS
+   ========================================================= */
+function articleMd(a) {
+  let s = `# ${a.title}\n**${inText(a)}** · ${a.status} · ${'★'.repeat(a.rating)}${'☆'.repeat(5 - a.rating)}\n\n**Reference:** ${reference(a)}\n`;
+  if (a.platforms.length) s += `**Platforms:** ${a.platforms.join(', ')}\n`;
+  if (a.subjectTags.length || a.methodTags.length) s += `**Tags:** ${a.subjectTags.join(', ')} | *${a.methodTags.join(', ')}*\n`;
+  S.colors.forEach(c => { const hs = a.highlights.filter(h => h.color === c.key).sort((x, y) => x.para - y.para || x.start - y.start); if (hs.length) s += `\n## ${c.name}\n` + hs.map(h => `> “${h.text}” ${inText(a, h.page)}${h.note ? `\n\n- Note: ${h.note}` : ''}`).join('\n\n') + '\n'; });
+  if (a.pageNotes.length) s += `\n## Notes\n` + a.pageNotes.map(n => `- ${n.text}`).join('\n') + '\n';
+  if (a.critical) s += `\n## Critical commentary\n${a.critical}\n`;
+  return s;
+}
+function topicMd(t) {
+  const items = topicItems(t.id); const by = {};
+  items.forEach(x => (by[x.a.id] = by[x.a.id] || []).push(x));
+  let s = `# Theme: ${t.name}\n${t.description ? t.description + '\n' : ''}\n_Exported ${fmtDate(new Date().toISOString())} · ${items.length} items · ${Object.keys(by).length} sources_\n`;
+  Object.entries(by).forEach(([aid, xs]) => { const a = art(aid); s += `\n## ${inText(a, '', true)} — ${a.title}\n` + xs.map(x => x.h ? `> “${x.h.text}” ${inText(a, x.h.page)} *[${colorOf(x.h.color).name}]*${x.h.note ? `\n\n- Note: ${x.h.note}` : ''}` : `- **Note:** ${x.n.text}`).join('\n\n') + '\n'; });
+  s += `\n## References\n` + Object.keys(by).map(art).sort((p, q) => refAuthors(p).localeCompare(refAuthors(q))).map(a => reference(a)).join('\n\n');
+  return s;
+}
+
+/* =========================================================
+   NAVIGATION HELPERS
+   ========================================================= */
+function openArticle(id, target) {
+  const a = art(id); if (!a) return;
+  UI.articleId = id; UI.view = 'reader'; UI.panelOpen = false; a.lastOpened = new Date().toISOString(); save(); closeModal(); render();
+  requestAnimationFrame(() => {
+    let el = null;
+    if (target?.hl) el = document.querySelector(`[data-hl="${target.hl}"]`);
+    else if (target?.para != null) el = document.querySelector(`[data-para="${target.para}"]`);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    else window.scrollTo({ top: 0 });
+  });
+}
+function goHL(id) { const a = S.articles.find(x => x.highlights.some(h => h.id === id)); if (a) openArticle(a.id, { hl: id }); }
+
+/* =========================================================
+   ACTIONS (event delegation)
+   ========================================================= */
+const A = {
+  nav: t => { const v = t.dataset.view; if (v === 'reader' && !UI.articleId) return; if (v === 'synthesis' && UI.articleId && !UI.synthArticle) UI.synthArticle = UI.articleId; UI.view = v; render(); scrollTo({ top: 0 }); },
+  open: t => openArticle(t.dataset.id),
+  goHL: t => goHL(t.dataset.id),
+  goPara: t => openArticle(t.dataset.aid, { para: +t.dataset.i }),
+  syncNow: () => { if (SYNC.status === 'offline' && !navigator.onLine) return toast('You are offline — changes are kept on this device'); syncNow(); },
+  authMode: () => { UI.authMode = UI.authMode === 'signup' ? 'signin' : 'signup'; render(); },
+  forgotPw: async () => {
+    const email = $('#au-email').value.trim(); const msg = $('#au-msg');
+    if (!email) { msg.textContent = tr('Enter your email first.'); msg.className = 'text-sm mt-3 text-rose-600'; return; }
+    const { error } = await supa.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0].split('?')[0] });
+    msg.textContent = error ? error.message : tr('Password reset link sent — check your email.'); msg.className = 'text-sm mt-3 ' + (error ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400');
+  },
+  signOut: async () => {
+    if (!supa) return;
+    await syncNow();
+    const unsynced = SYNC.status !== 'synced';
+    if (!confirm(unsynced
+      ? L('Some changes have not synced yet and will be lost. Sign out and remove this device’s copy anyway?', 'بعض التغييرات لم تُزامَن بعد وستُفقد. تسجيل الخروج وحذف نسخة هذا الجهاز على أي حال؟')
+      : L('Sign out and remove the local copy of your library from this device? It stays safe in your account.', 'تسجيل الخروج وحذف النسخة المحلية من مكتبتك على هذا الجهاز؟ تبقى محفوظة في حسابك.'))) return;
+    await supa.auth.signOut(); await store.del('state'); await store.del('syncmeta'); location.reload();
+  },
+  testClaude: async t => {
+    t.disabled = true;
+    try { const out = await claude('Reply with the single word OK.', [{ role: 'user', content: 'ping' }], 16); toast(L('Claude is connected', 'Claude متصل') + (out ? ' · ' + out.slice(0, 20) : '')); }
+    catch (e) { toast(L('Claude connection failed: ', 'تعذّر الاتصال بـ Claude: ') + e.message, 'error'); }
+    t.disabled = false;
+  },
+  toggleLang: () => switchLang(LANG === 'ar' ? 'en' : 'ar'),
+  setLang: t => switchLang(t.dataset.l),
+  toggleTheme: () => { const d = document.documentElement.classList.toggle('dark'); try { localStorage.setItem('lectern.theme', d ? 'dark' : 'light'); } catch (e) {} },
+  openSettings: () => openSettings(),
+  openAdd: () => openAddModal(),
+  closeModal: () => closeModal(),
+  setFilter: t => { UI.filters[t.dataset.k] = t.dataset.v; render(); },
+  clearFilters: () => { UI.filters = { platform: '', status: '', tag: '', q: '', sort: UI.filters.sort }; render(); },
+  exportRefs: () => {
+    const list = filteredArticles().sort((p, q) => refAuthors(p).localeCompare(refAuthors(q)) || String(p.year).localeCompare(String(q.year)));
+    const html = list.map(a => `<p>${reference(a, true)}</p>`).join('');
+    openModal(`<h3 class="text-lg font-semibold mb-1">Reference list</h3><p class="text-xs text-ink-500 mb-4">${list.length} entries, alphabetical · University of Sheffield Harvard. Copy keeps italics when pasted into Word.</p>
+      <div data-raw dir="ltr" class="text-start space-y-3 text-sm leading-relaxed max-h-[55vh] overflow-auto pe-2 scroll-thin [&_p]:ps-8 [&_p]:-indent-8">${html}</div>
+      <div class="flex justify-end mt-5"><button data-act="copyRefList" class="${btnPri}">${ic('copy')}Copy list</button></div>`, true);
+    MODAL = { type: 'refs', text: list.map(a => reference(a)).join('\n\n'), html };
+  },
+  copyRefList: () => copyText(MODAL.text, MODAL.html),
+  togglePanel: () => { UI.panelOpen = !UI.panelOpen; const p = $('#panel'); if (p) { p.classList.toggle('translate-x-full', !UI.panelOpen); p.classList.toggle('translate-x-0', UI.panelOpen); p.classList.toggle('shadow-2xl', UI.panelOpen); } },
+  panel: t => { UI.panel = t.dataset.p; if (innerWidth < 1024 && !UI.panelOpen) A.togglePanel(); renderPanel(); },
+  fontSize: () => { const o = ['sm', 'md', 'lg']; S.settings.readerSize = o[(o.indexOf(S.settings.readerSize) + 1) % 3]; save(); const el = document.querySelector('article[class*="reader-"]'); if (el) { el.classList.remove('reader-sm', 'reader-md', 'reader-lg'); el.classList.add('reader-' + S.settings.readerSize); } },
+  rate: t => { const a = art(); const v = +t.dataset.v; a.rating = a.rating === v ? v - 1 : v; save(); renderPanel(); },
+  togglePlatform: t => { const a = art(); const p = t.dataset.p; a.platforms = a.platforms.includes(p) ? a.platforms.filter(x => x !== p) : [...a.platforms, p]; save(); renderPanel(); },
+  rmTag: t => { const a = art(); a[t.dataset.f] = a[t.dataset.f].filter(x => x !== t.dataset.t); save(); renderPanel(); },
+  deleteArticle: () => { const a = art(); if (!confirm(L(`Delete “${a.title}” and its ${a.highlights.length} highlights?`, `حذف «${a.title}» مع ${a.highlights.length} من تظليلاته؟`))) return; S.articles = S.articles.filter(x => x.id !== a.id); delete S.chats[a.id]; UI.articleId = null; UI.view = 'library'; save(); render(); toast('Article deleted'); },
+  editText: () => openTextEditor(),
+  saveText: () => { const a = art(); a.content = $('#m-text').value; save(); closeModal(); renderBody(); renderPanel(); toast('Full text saved'); },
+  editHL: (t, e) => { const s = window.getSelection(); if (s && !s.isCollapsed && t.tagName === 'MARK') return; openHLModal(t.dataset.id); },
+  editNote: t => openNoteModal(t.dataset.aid, t.dataset.id),
+  quoteColor: t => { UI.quoteColor = t.dataset.c; renderPanel(); },
+  addPageNote: () => { const a = art(); const v = $('#pagenote').value.trim(); if (!v) return; a.pageNotes.unshift({ id: uid(), text: v, topicIds: [], created: new Date().toISOString() }); save(); renderPanel(); toast('Note added'); },
+  copyQuote: t => { const a = S.articles.find(x => x.highlights.some(h => h.id === t.dataset.id)); const h = a.highlights.find(x => x.id === t.dataset.id); copyText(`“${h.text}” ${inText(a, h.page)}`); },
+  copyArticleMd: t => copyText(articleMd(art(t.dataset.id))),
+  synthArticle: t => { UI.synthMode = 'article'; UI.synthArticle = t.dataset.id; UI.view = 'synthesis'; render(); scrollTo({ top: 0 }); },
+  /* summary */
+  summarise: async t => {
+    const a = art(); const mode = t.dataset.mode;
+    if (mode === 'heuristic') { a.summary = { ...heuristicSummary(a), source: 'heuristic' }; save(); renderPanel(); toast('Cue sentences extracted — verify before use'); return; }
+    if (!hasKey()) { toast('Add a Claude API key in Settings first', 'error'); return; }
+    UI.busy['sum-' + a.id] = true; renderPanel();
+    try {
+      const out = await claude(supSystem() + '\nReturn ONLY a JSON object, no prose.', [{ role: 'user', content: `Produce a structured academic summary of this article as JSON with string fields: "thesis" (core research idea / main thesis), "questions" (research questions, verbatim if stated), "methodology" (design, data set, sample size, period, analytic procedure), "findings" (key empirical results), "gap" (the research gap it addresses, as the authors frame it). 2–4 precise sentences per field; write "Not stated in the text." where applicable.\n\n${articleContext(a)}` }], 1500);
+      const j = parseJSON(out); if (!j) throw new Error('Unexpected response format');
+      a.summary = { thesis: j.thesis || '', questions: j.questions || '', methodology: j.methodology || '', findings: j.findings || '', gap: j.gap || '', source: 'claude' };
+      if (a.status === 'To Read') a.status = 'AI Summarized';
+      save(); toast('Summary generated');
+    } catch (e) { toast('Summary failed: ' + e.message, 'error'); }
+    UI.busy['sum-' + a.id] = false; renderPanel();
+  },
+  copySum: t => { const a = art(); copyText(a.summary?.[t.dataset.k] || ''); },
+  copySumAll: () => { const a = art(); copyText(`## Structured summary — ${inText(a)}\n\n` + SUM_FIELDS.map(([k, l]) => `**${l}:** ${a.summary?.[k] || '—'}`).join('\n\n')); },
+  /* cite */
+  copyRef: () => { const a = art(); copyText(reference(a), `<p>${reference(a, true)}</p>`); },
+  copyCite: t => { const a = art(); const m = t.dataset.mode; copyText(m === 'n' ? inText(a, '', true) : m === 'page' ? inText(a, $('#citepage').value.trim()) : inText(a)); },
+  /* assistant */
+  quick: t => askAssistant(art(), t.dataset.k),
+  sendChat: () => { const el = $('#chatin'); const v = el.value.trim(); if (!v) return; el.value = ''; askAssistant(art(), 'free', v); },
+  clearChat: () => { S.chats[UI.articleId] = []; save(); renderPanel(); },
+  copyMsg: t => copyText(S.chats[UI.articleId][+t.dataset.i].content),
+  /* selection toolbar */
+  selHL: t => addHighlight(t.dataset.c),
+  selNote: () => addHighlight(S.colors[0].key, true),
+  selCopy: () => { const s = UI.sel; if (!s) return; copyText(`“${s.text}” ${inText(art())}`); hideSelTool(); },
+  selTranslate: async () => {
+    const s = UI.sel; if (!s) return; const text = s.text; hideSelTool();
+    if (!hasKey()) return noKeyTranslate(text);
+    openModal(`<h3 class="text-lg font-semibold mb-3 flex items-center gap-2">${ic('languages')}Translating…</h3><div class="flex items-center gap-2 text-sm text-ink-500">${ic('loader-2', 'w-4 h-4 animate-spin')}Working</div>`);
+    try { const r = await translate(text); MODAL = { type: 'tr', text: r.text };
+      openModal(`<h3 class="text-lg font-semibold mb-3 flex items-center gap-2">${ic('languages')}Academic translation</h3><blockquote data-raw dir="auto" class="font-serif text-sm text-ink-500 border-s-4 border-ink-200 dark:border-ink-700 ps-3 mb-4 max-h-32 overflow-auto">${esc(text)}</blockquote><p data-raw dir="${r.dir}" class="${r.dir === 'rtl' ? 'ar text-lg' : 'font-serif'} leading-relaxed">${esc(r.text)}</p><div class="flex justify-end mt-5"><button data-act="copyTr" class="${btnPri}">${ic('copy')}Copy</button></div>`);
+    } catch (e) { closeModal(); toast('Translation failed: ' + e.message, 'error'); }
+  },
+  copyTr: () => copyText(MODAL.text),
+  trPara: async t => {
+    const a = art(); const i = +t.dataset.i; const text = paraList(a)[i];
+    if (!hasKey()) return noKeyTranslate(text);
+    t.disabled = true; t.innerHTML = ic('loader-2', 'w-4 h-4 animate-spin'); icons();
+    try { a.translations[i] = await translate(text); save(); renderBody(); } catch (e) { toast('Translation failed: ' + e.message, 'error'); renderBody(); }
+  },
+  trHide: t => { const a = art(); delete a.translations[+t.dataset.i]; save(); renderBody(); },
+  /* highlight modal */
+  mColor: t => { MODAL.color = t.dataset.c; document.querySelectorAll('#m-colors button').forEach(b => { const on = b.dataset.c === MODAL.color; b.classList.toggle('ring-2', on); b.classList.toggle('ring-accent-500', on); b.classList.toggle('border-transparent', on); }); },
+  mTopic: t => { const id = t.dataset.t; MODAL.topicIds = MODAL.topicIds.includes(id) ? MODAL.topicIds.filter(x => x !== id) : [...MODAL.topicIds, id]; $('#m-topics').innerHTML = topicToggles(MODAL.topicIds, 'mTopic'); icons(); },
+  modalAddTopic: () => { const v = $('#modal-newtopic').value.trim(); if (!v) return; const t = { id: uid(), name: v, description: '' }; S.topics.push(t); MODAL.topicIds.push(t.id); save(); $('#m-topics').innerHTML = topicToggles(MODAL.topicIds, 'mTopic'); icons(); },
+  mSaveHL: () => { const a = art(MODAL.aid); const h = a.highlights.find(x => x.id === MODAL.id); h.note = $('#m-note').value.trim(); h.page = $('#m-page').value.trim(); h.topicIds = MODAL.topicIds; h.color = MODAL.color; save(); closeModal(); refreshAfterEdit(); toast('Highlight saved'); },
+  mDeleteHL: () => { const a = art(MODAL.aid); a.highlights = a.highlights.filter(x => x.id !== MODAL.id); save(); closeModal(); refreshAfterEdit(); toast('Highlight removed'); },
+  mTranslateHL: () => { const a = art(MODAL.aid); const h = a.highlights.find(x => x.id === MODAL.id); closeModal(); UI.sel = { text: h.text }; A.selTranslate(); },
+  mSaveNote: () => { const a = art(MODAL.aid); const n = a.pageNotes.find(x => x.id === MODAL.id); n.text = $('#m-note').value.trim() || n.text; n.topicIds = MODAL.topicIds; save(); closeModal(); refreshAfterEdit(); },
+  mDeleteNote: () => { const a = art(MODAL.aid); a.pageNotes = a.pageNotes.filter(x => x.id !== MODAL.id); save(); closeModal(); refreshAfterEdit(); },
+  /* add article */
+  addTab: t => { UI.addTab = t.dataset.t; openAddModal(); },
+  fPlatform: t => { const p = t.dataset.p; MODAL.platforms = MODAL.platforms.includes(p) ? MODAL.platforms.filter(x => x !== p) : [...MODAL.platforms, p]; t.classList.toggle('bg-accent-700'); t.classList.toggle('text-white'); t.classList.toggle('border-accent-700'); },
+  fetchMeta: async t => {
+    const v = $('#f-src').value.trim(); if (!v) return;
+    t.disabled = true; t.innerHTML = ic('loader-2', 'w-4 h-4 animate-spin') + 'Fetching'; icons();
+    try { const m = await fetchCrossref(v); if (m) { fillForm(m); toast('Metadata retrieved from Crossref'); } else { fillForm({ url: v }); toast('No DOI detected — fill in the details manually'); } }
+    catch (e) { toast(e.message, 'error'); fillForm({ url: /^https?:/.test(v) ? v : '' }); }
+    t.disabled = false; t.innerHTML = ic('download-cloud') + 'Fetch'; icons();
+  },
+  pasteExtract: async t => {
+    const txt = $('#f-paste').value.trim(); if (!txt) return toast('Paste some text first', 'error');
+    if (t.dataset.mode === 'claude') {
+      if (!hasKey()) return toast('Add a Claude API key in Settings first', 'error');
+      t.disabled = true; t.innerHTML = ic('loader-2', 'w-4 h-4 animate-spin') + 'Extracting'; icons();
+      try { const j = parseJSON(await claude('Extract bibliographic metadata from academic article text. Return ONLY JSON: {"title":"","authors":[{"family":"","given":""}],"year":"","journal":"","volume":"","issue":"","pages":"","doi":"","abstract":""}. Use empty strings for anything not present; never guess.', [{ role: 'user', content: txt.slice(0, 20000) }], 1200)); fillForm({ ...j, content: txt }); toast('Metadata extracted'); }
+      catch (e) { toast('Extraction failed: ' + e.message, 'error'); }
+      t.disabled = false; t.innerHTML = ic('sparkles') + 'Extract with Claude'; icons(); return;
+    }
+    const m = heuristicMeta(txt); fillForm({ ...m, content: txt });
+    if (m.doi) { try { const c = await fetchCrossref(m.doi); if (c) { fillForm(c); toast('DOI found — metadata completed from Crossref'); return; } } catch (e) {} }
+    toast('Best-guess extraction — check every field');
+  },
+  saveNew: () => {
+    const g = k => ($('#f-' + k)?.value || '').trim();
+    if (!g('title')) return toast('A title is required', 'error');
+    const a = mkArticle({ title: g('title'), authors: parseAuthors(g('authors')), year: g('year'), journal: g('journal'), volume: g('volume'), issue: g('issue'), pages: g('pages'), doi: (g('doi').match(DOI_RE) || [''])[0], url: g('url'), abstract: g('abstract'), content: g('content') || g('abstract'), platforms: MODAL.platforms });
+    S.articles.unshift(a); save(); closeModal(); openArticle(a.id); toast('Added to library');
+  },
+  /* synthesis */
+  synthMode: t => { UI.synthMode = t.dataset.m; render(); },
+  pickTopic: t => { UI.synthTopic = t.dataset.id; render(); },
+  addTopic: () => { const v = $('#newtopic').value.trim(); if (!v) return; const t = { id: uid(), name: v, description: '' }; S.topics.push(t); UI.synthTopic = t.id; save(); render(); },
+  deleteTopic: () => { const t = topicOf(UI.synthTopic); if (!t || !confirm(L(`Delete theme “${t.name}”? Quotes stay in their articles.`, `حذف المحور «${t.name}»؟ تبقى الاقتباسات في مقالاتها.`))) return; S.topics = S.topics.filter(x => x.id !== t.id); S.articles.forEach(a => { a.highlights.forEach(h => h.topicIds = h.topicIds.filter(x => x !== t.id)); a.pageNotes.forEach(n => n.topicIds = n.topicIds.filter(x => x !== t.id)); }); UI.synthTopic = null; save(); render(); },
+  copyTopicMd: () => copyText(topicMd(topicOf(UI.synthTopic))),
+  copyDraft: () => copyText(UI.lastDraft[UI.synthTopic]?.text || ''),
+  draftTopic: async () => {
+    const t = topicOf(UI.synthTopic); const items = topicItems(t.id); if (!items.length) return toast('No quotes in this theme yet', 'error');
+    const bundle = items.map(x => x.h ? `- ${inText(x.a, x.h.page)} [${colorOf(x.h.color).name}]: "${x.h.text}"${x.h.note ? ` (note: ${x.h.note})` : ''}` : `- ${inText(x.a)} [researcher note]: ${x.n.text}`).join('\n');
+    if (!hasKey()) {
+      const arts = [...new Set(items.map(x => x.a))];
+      const text = `## ${t.name} — ${L('scaffold', 'هيكل أولي')}\n${t.description ? '*' + t.description + '*\n' : ''}\n**${L('Sources in this theme', 'مصادر هذا المحور')}:** ${arts.map(a => inText(a, '', true)).join('; ')}\n\n${arts.map(a => { const hs = items.filter(x => x.a === a && x.h); return `- **${inText(a, '', true)}:** ${stripLead(a.summary?.thesis || a.abstract).slice(0, 220) || '—'}${hs.length ? ` — ${L('key quote', 'اقتباس محوري')}: “${hs[0].h.text}”` : ''}`; }).join('\n')}\n\n**${L('Questions for the synthesis', 'أسئلة للتوليف')}:** ${L('Where do these sources converge on the theme? Where do units of analysis, platforms or methods diverge? Which gap does the cluster leave open for your thesis?', 'أين تتقاطع هذه المصادر حول المحور؟ وأين تختلف وحدات التحليل أو المنصات أو المناهج؟ وما الفجوة التي تتركها المجموعة مفتوحة لأطروحتك؟')}\n\n*${L('Offline scaffold — add an API key for a drafted synthesis.', 'هيكل أولي دون اتصال — أضف مفتاح API للحصول على توليف مكتوب.')}*`;
+      UI.lastDraft[t.id] = { text, offline: true }; render(); return;
+    }
+    UI.busy['topic'] = true; render();
+    try {
+      const text = await claude(supSystem(), [{ role: 'user', content: `Theme: "${t.name}". ${t.description || ''}\nUsing ONLY the quotes and notes below, write (1) a synthesis of 2 paragraphs (UK English, Sheffield Harvard in-text citations as given) that identifies convergences, tensions and the gap the cluster leaves open, then (2) a 3-row synthesis matrix in Markdown bullets (Source → claim → method/platform → relevance).\n\n${bundle}` }], 1800);
+      UI.lastDraft[t.id] = { text, offline: false };
+    } catch (e) { toast('Draft failed: ' + e.message, 'error'); }
+    UI.busy['topic'] = false; render();
+  },
+  /* settings */
+  addColor: () => { const pal = ['#a855f7', '#f97316', '#14b8a6', '#ef4444', '#84cc16']; S.colors.push({ key: 'c' + uid(), name: 'New category', hex: pal[S.colors.length % pal.length] }); save(); openSettings(); },
+  rmColor: t => { const c = S.colors[+t.dataset.i]; const n = S.articles.reduce((k, a) => k + a.highlights.filter(h => h.color === c.key).length, 0); if (n && !confirm(L(`${n} highlights use “${c.name}”. They will move to “${S.colors[0].key === c.key ? S.colors[1].name : S.colors[0].name}”. Continue?`, `${n} من التظليلات تستخدم «${c.name}» وستُنقل إلى «${S.colors[0].key === c.key ? S.colors[1].name : S.colors[0].name}». متابعة؟`))) return; S.colors.splice(+t.dataset.i, 1); S.articles.forEach(a => a.highlights.forEach(h => { if (h.color === c.key) h.color = S.colors[0].key; })); save(); openSettings(); },
+  exportJSON: () => { const blob = new Blob([JSON.stringify({ ...S, settings: { ...S.settings, apiKey: '' } }, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = `lectern-backup-${new Date().toISOString().slice(0, 10)}.json`; l.click(); URL.revokeObjectURL(u); toast('Backup exported (API key excluded)'); },
+  resetAll: () => { if (!confirm(L('Replace everything with the sample library? Export a backup first if needed.', 'استبدال كل شيء بالمكتبة النموذجية؟ صدّر نسخة احتياطية أولاً إن لزم.'))) return; const key = S.settings.apiKey; S = seed(); S.settings.apiKey = key; UI.articleId = null; UI.view = 'library'; save(); closeModal(); render(); },
+};
+function refreshAfterEdit() {
+  if (UI.view === 'reader') { renderBody(); renderPanel(); } else render();
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
+  const act = t.dataset.act; if (!A[act]) return;
+  if (t.tagName === 'A') return;
+  e.preventDefault(); A[act](t, e);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.field) {
+    const a = art(); const k = t.dataset.field;
+    if (k === 'authors') a.authors = parseAuthors(t.value);
+    else if (k === 'doi') a.doi = (t.value.match(DOI_RE) || [''])[0];
+    else a[k] = t.value;
+    save();
+    if (['title', 'authors', 'year', 'journal', 'volume', 'issue', 'pages', 'doi', 'url', 'abstract', 'status'].includes(k)) { const st = scrollY; render(); scrollTo(0, st); }
+  }
+  if (t.dataset.filter) { UI.filters[t.dataset.filter] = t.value; render(); }
+  if (t.dataset.actChange === 'synthArticle') { UI.synthArticle = t.value; render(); }
+  if (t.dataset.setting) { S.settings[t.dataset.setting] = t.type === 'checkbox' ? t.checked : t.value.trim(); save(); if (UI.view === 'reader') renderPanel(); }
+  if (t.dataset.colorHex != null) { S.colors[+t.dataset.colorHex].hex = t.value; save(); if (UI.view === 'reader') renderBody(); }
+  if (t.dataset.colorName != null) { S.colors[+t.dataset.colorName].name = t.value.trim() || 'Untitled'; save(); if (UI.view !== 'reader') render(); else renderPanel(); }
+  if (t.id === 'importfile' && t.files[0]) {
+    const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.articles)) throw 0; if (SYNC_ON && SESSION && !confirm(L(`Replace your synced library (${S.articles.length} articles, on all devices) with this backup (${d.articles.length} articles)?`, `استبدال مكتبتك المتزامنة (${S.articles.length} مقالاً على كل الأجهزة) بهذه النسخة (${d.articles.length} مقالاً)؟`))) return; const key = S.settings.apiKey; S = d; S.settings = Object.assign({}, S.settings, { apiKey: key }); S.chats = S.chats || {}; save(); closeModal(); UI.view = 'library'; UI.articleId = null; render(); toast('Backup imported'); } catch (_) { toast('Not a valid Lectern backup', 'error'); } }; r.readAsText(t.files[0]);
+  }
+});
+const saveSoon = debounce(save, 400);
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.field === 'critical') { art().critical = t.value; saveSoon(); }
+  if (t.dataset.sum) { const a = art(); a.summary[t.dataset.sum] = t.value; a.summary.source = 'manual'; saveSoon(); }
+  if (t.dataset.topic) { const tp = topicOf(UI.synthTopic); tp[t.dataset.topic] = t.value; saveSoon(); }
+  if (t.dataset.filter === 'q') { UI.filters.q = t.value; filterSoon(); }
+  if (t.id === 'gsearch') searchSoon(t.value);
+});
+const filterSoon = debounce(() => { const el = document.activeElement; const pos = el?.selectionStart; render(); const n = document.querySelector('[data-filter="q"]'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } }, 250);
+const searchSoon = debounce(v => { UI.globalQ = v; if (v.trim().length >= 2) { UI.view = 'search'; render(); } else if (UI.view === 'search') render(); }, 250);
+document.addEventListener('keydown', e => {
+  const t = e.target; const typing = /INPUT|TEXTAREA|SELECT/.test(t.tagName);
+  if (t.dataset?.tag && (e.key === 'Enter' || e.key === ',')) { e.preventDefault(); const v = t.value.trim().replace(/,$/, ''); if (!v) return; const a = art(); const f = t.dataset.tag; if (!a[f].includes(v)) a[f].push(v); save(); renderPanel(); setTimeout(() => document.querySelector(`[data-tag="${f}"]`)?.focus(), 0); return; }
+  if (t.id === 'chatin' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); A.sendChat(); return; }
+  if (t.id === 'gsearch' && e.key === 'Enter') { UI.globalQ = t.value; UI.view = 'search'; render(); return; }
+  if (t.id === 'newtopic' && e.key === 'Enter') { A.addTopic(); return; }
+  if (e.key === 'Escape') { if ($('#modal-root').innerHTML) closeModal(); else if (UI.panelOpen) A.togglePanel(); hideSelTool(); return; }
+  if (typing) return;
+  if (e.key === '/') { e.preventDefault(); $('#gsearch').focus(); return; }
+  if (UI.view === 'reader' && UI.sel && !UI.sel.multi && /^[1-8]$/.test(e.key)) { const c = S.colors[+e.key - 1]; if (c) { e.preventDefault(); addHighlight(c.key); } }
+});
+
+/* ---------- Boot ---------- */
+addEventListener('online', () => syncNow());
+addEventListener('offline', () => { if (SESSION) setSync('offline'); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncNow(); else if (S) store.set('state', S); });
+addEventListener('pagehide', () => { if (S) store.set('state', S); });
+setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 60000);
+document.addEventListener('focusout', () => setTimeout(() => { if (SYNC.needRender && !isTyping()) refreshView(); }, 400));
+(async () => {
+  document.documentElement.lang = LANG === 'ar' ? 'ar' : 'en-GB'; document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr';
+  $('#langlbl').textContent = LANG === 'ar' ? 'EN' : 'ع';
+  await initState();
+  await initAuth();
+  persistSoon(); render(); renderSyncBadge();
+  if (SESSION) syncNow();
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
