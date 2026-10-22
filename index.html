@@ -38,7 +38,13 @@
   :root { --hdr: 57px; }
   html, body { -webkit-tap-highlight-color: transparent; }
   body { font-feature-settings: "cv11", "ss01"; }
-  .reader-p { font-family: "Source Serif 4", Georgia, serif; font-size: 1.125rem; line-height: 1.85; margin: 0 0 1.25rem; hyphens: auto; scroll-margin-top: 130px; }
+  .reader-p { font-family: "Source Serif 4", Georgia, serif; font-size: 1.125rem; line-height: 1.85; margin: 0 0 1.25rem; hyphens: auto; scroll-margin-top: 170px; }
+  .reader-h2 { font-family: "Source Serif 4", Georgia, serif; font-size: 1.5rem; line-height: 1.3; font-weight: 700; margin: 0 0 1rem; scroll-margin-top: 170px; }
+  .reader-h3 { font-family: "Source Serif 4", Georgia, serif; font-size: 1.2rem; line-height: 1.35; font-weight: 600; margin: 1.75rem 0 .75rem; scroll-margin-top: 170px; }
+  .reader-sec { scroll-margin-top: 165px; }
+  .reader-hidden .reader-p { font-size: .95rem; line-height: 1.6; margin-bottom: .6rem; }
+  .sec-type { -webkit-appearance: none; appearance: none; background: transparent; border: 0; padding: 0 1rem 0 0; cursor: pointer; }
+  [dir="rtl"] .sec-type { padding: 0 0 0 1rem; }
   .reader-lg .reader-p { font-size: 1.25rem; }
   .reader-sm .reader-p { font-size: 1rem; }
   mark.hl { background: color-mix(in srgb, var(--hl) 38%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; cursor: pointer; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--hl) 85%, transparent); scroll-margin-top: 140px; transition: background .2s; }
@@ -129,6 +135,39 @@ const splitSentences = t => (t.replace(/\s+/g, ' ').match(/[^.!?]+(?:[.!?]+["')\
 let LANG = (() => { try { return localStorage.getItem('lectern.lang') === 'ar' ? 'ar' : 'en'; } catch (e) { return 'en'; } })();
 const L = (en, ar) => LANG === 'ar' ? ar : en;
 const AR = /*AR_DICT*/{
+"Introduction": "مقدمة",
+"Literature review": "مراجعة الأدبيات",
+"Theoretical framework": "الإطار النظري",
+"Findings": "النتائج",
+"Discussion": "المناقشة",
+"Conclusion": "الخاتمة",
+"Section": "قسم",
+"References": "المراجع",
+"Notes & back matter": "ملاحظات وملاحق",
+"Keywords": "الكلمات المفتاحية",
+"Organise this text into academic sections": "نظّم هذا النص في أقسام أكاديمية",
+"Introduction · Literature review · Methodology · Findings · Discussion · Conclusion": "مقدمة · مراجعة الأدبيات · المنهجية · النتائج · المناقشة · الخاتمة",
+"Organise with Claude": "التنظيم عبر Claude",
+"Quick (offline)": "سريع (دون اتصال)",
+"Hide": "إخفاء",
+"Change section type": "تغيير نوع القسم",
+"Hidden from reading view": "مخفي من عرض القراءة",
+"— title, authors, affiliations, abstract…": "— العنوان، المؤلفون، الانتماءات، الملخص…",
+"Organise sections": "تنظيم الأقسام",
+"Organised by Claude": "نظّمه Claude",
+"From the article’s headings": "من عناوين المقال",
+"Inferred — check": "مُستنتَج — راجِعه",
+"Organised": "منظَّم",
+"Organise into academic sections": "التنظيم في أقسام أكاديمية",
+"Groups the text into Introduction, Literature review, Methodology, Findings, Discussion and Conclusion, hides page furniture (journal banners, affiliations, dates) and rejoins paragraphs split by page breaks. The wording is not changed; highlights and quotations stay attached.": "يجمع النص في أقسام: مقدمة، مراجعة الأدبيات، المنهجية، النتائج، المناقشة، الخاتمة؛ ويُخفي زوائد الصفحات (ترويسة المجلة، الانتماءات، التواريخ)، ويعيد وصل الفقرات المقسومة بين الصفحات. لا تتغير الكلمات، وتبقى التظليلات والاقتباسات في مواضعها.",
+"Most accurate: reads every paragraph and the article’s own headings — uses your Claude subscription (copy → paste).": "الأدق: يقرأ كل فقرة وعناوين المقال الأصلية — عبر اشتراكك في Claude (نسخ ← لصق).",
+"Most accurate: reads every paragraph and the article’s own headings.": "الأدق: يقرأ كل فقرة وعناوين المقال الأصلية.",
+"Quick organise (offline)": "تنظيم سريع (دون اتصال)",
+"Uses the article’s headings; when there are none, infers sections from the wording.": "يعتمد عناوين المقال، وإن لم توجد يستنتج الأقسام من الصياغة.",
+"Show as continuous text": "عرض كنص متصل",
+"Removes the sections (you can organise again at any time).": "يزيل الأقسام (ويمكنك التنظيم مجدداً في أي وقت).",
+"Organising…": "جارٍ التنظيم…",
+
 "Highlights": "التظليلات",
 "Quotations": "الاقتباسات",
 "quotation": "اقتباس",
@@ -1007,6 +1046,7 @@ AUTHORS: ${authorsToStr(a.authors)} | YEAR: ${a.year} | JOURNAL: ${a.journal} ${
 IN-TEXT CITATION: ${inText(a)}
 PLATFORMS STUDIED: ${a.platforms.join(', ') || '—'} | SUBJECT TAGS: ${a.subjectTags.join(', ') || '—'} | METHOD TAGS: ${a.methodTags.join(', ') || '—'}
 ABSTRACT: ${a.abstract || '—'}
+SECTIONS: ${(structureFor(a)?.sections || []).map(s => sectionTitle(s) + ' [' + s.type + ']').join(' | ') || '—'}
 STRUCTURED SUMMARY: thesis: ${sm.thesis || '—'} | RQs: ${sm.questions || '—'} | method: ${sm.methodology || '—'} | findings: ${sm.findings || '—'} | gap: ${sm.gap || '—'}
 MY HIGHLIGHTS:
 ${hl || '—'}
@@ -1075,7 +1115,7 @@ function render() {
   renderNav();
   const m = $('#main');
   if (UI.view === 'library') m.innerHTML = libraryHTML();
-  else if (UI.view === 'reader') m.innerHTML = readerHTML();
+  else if (UI.view === 'reader') { m.innerHTML = readerHTML(); requestAnimationFrame(trackSections); }
   else if (UI.view === 'synthesis') m.innerHTML = synthesisHTML();
   else if (UI.view === 'search') m.innerHTML = searchHTML();
   icons();
@@ -1158,6 +1198,169 @@ function articleCard(a) {
   </article>`;
 }
 
+/* ---------- Academic structure (sections) ----------
+   A layer on top of the text: paragraphs are grouped into sections by index;
+   the words themselves never change (except rejoining paragraphs split by a
+   page break), so highlights and quotations stay anchored. */
+const SEC_TYPES = {
+  introduction: { label: 'Introduction', hex: '#3b82f6' },
+  literature: { label: 'Literature review', hex: '#8b5cf6' },
+  theory: { label: 'Theoretical framework', hex: '#a855f7' },
+  methodology: { label: 'Methodology', hex: '#22c55e' },
+  findings: { label: 'Findings', hex: '#ec4899' },
+  discussion: { label: 'Discussion', hex: '#f59e0b' },
+  conclusion: { label: 'Conclusion', hex: '#6366f1' },
+  other: { label: 'Section', hex: '#94a3b8' },
+  references: { label: 'References', hex: '#64748b' },
+  backmatter: { label: 'Notes & back matter', hex: '#64748b' },
+};
+const SEC_ORDER = ['introduction', 'literature', 'methodology', 'findings', 'discussion', 'conclusion'];
+const HEAD_MAP = [
+  [/^(abstract|summary)$/i, 'abstract'],
+  [/^(keywords?|key words)\b/i, 'keywords'],
+  [/^results and discussion$|^discussion|^general discussion/i, 'discussion'],
+  [/^(introduction|background|context|overview|setting the scene)\b/i, 'introduction'],
+  [/^(literature review|review of (the )?(literature|research)|related (work|literature|research|studies)|previous (research|studies)|prior research|state of the (art|field))\b/i, 'literature'],
+  [/^(theor(y|ies|etical)\b|conceptual (framework|background)|analytical framework|theoretical framework)/i, 'theory'],
+  [/^(method(s|ology|ological)?\b|research (design|method)|data( and method| collection| and analysis)?\b|materials and methods|study design|case (study|selection)|sampl(e|ing)\b|analytic(al)? (approach|strategy|procedure))/i, 'methodology'],
+  [/^(results?|findings|empirical (results|findings|analysis)|analysis and findings)\b/i, 'findings'],
+  [/^(conclusions?|concluding (remarks|thoughts)|final (remarks|thoughts)|implications|limitations( and future (research|directions))?|future research)\b/i, 'conclusion'],
+  [/^(references|bibliography|works cited|literature cited)$/i, 'references'],
+  [/^(acknowledg(e)?ments?|funding|declaration|disclosure|conflicts? of interest|notes|endnotes|appendix|author biograph|about the authors?|data availability|ethic(s|al))/i, 'backmatter'],
+];
+const NOISE_RE = /(@[\w-]+\.[\w.]+|^corresponding author|^e-?mail|©|copyright|all rights reserved|downloaded from|^received[:\s]|^accepted[:\s]|^revised[:\s]|^published( online)?[:\s]|^to cite this article|^article history|^issn\b|^volume \d+|^vol\. ?\d+)/i;
+const stripNum = s => s.replace(/^\s*((\d+(\.\d+)*|[IVXivx]+|[A-Ha-h])[.)]?\s+)/, '').trim();
+const normTxt = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function headingType(text) {
+  const t = text.trim(); const words = t.split(/\s+/).length;
+  if (words > 12 || t.length > 110) return null;
+  if (/[.;,]$/.test(t) && !/^(\d+(\.\d+)*\.?\s)/.test(t)) return null;
+  const core = stripNum(t).replace(/[:.]$/, '');
+  for (const [re, type] of HEAD_MAP) if (re.test(core)) return type;
+  return null;
+}
+const structureFor = a => (a.structure && a.structure.hash === hj(a.content) && Array.isArray(a.structure.sections)) ? a.structure : null;
+
+function heuristicStructure(a, { explicitOnly = false } = {}) {
+  const ps = paraList(a), n = ps.length;
+  const out = { merge: [], hidden: [], abstract: [], keywords: [], sections: [] };
+  const fam = (a.authors || []).map(x => normTxt(x.family)).filter(f => f.length > 2);
+  const tNorm = normTxt(a.title);
+  let firstHead = -1;
+  ps.forEach((p, i) => {
+    const words = p.split(/\s+/).length, np = normTxt(p);
+    const ht = headingType(p);
+    if (ht === 'abstract') { out.hidden.push(i); if (ps[i + 1]) out.abstract.push(i + 1); return; }
+    if (/^abstract\b[:.\s—-]/i.test(p) && words > 25) { out.abstract.push(i); return; }
+    if (ht === 'keywords' || /^key ?words?\s*[:—-]/i.test(p)) { out.hidden.push(i); out.keywords = p.replace(/^key ?words?\s*[:—-]?\s*/i, '').split(/[;,·•]/).map(s => s.trim()).filter(Boolean).slice(0, 15); return; }
+    if (words < 60 && NOISE_RE.test(p)) { out.hidden.push(i); return; }
+    if (tNorm && words < 40 && (np === tNorm || (np.length > 15 && tNorm.startsWith(np)))) { out.hidden.push(i); return; }
+    if (words < 30 && fam.length && fam.filter(f => np.includes(f)).length >= Math.min(2, fam.length) && !/[.?!]$/.test(p)) { out.hidden.push(i); return; }
+    if (ht && ht !== 'keywords') { out.sections.push({ start: i, heading: i, type: ht === 'abstract' ? 'other' : ht, title: p.trim() }); if (firstHead < 0) firstHead = i; return; }
+    // numbered sub-heading inside a section, e.g. "3.2 Sampling strategy"
+    if (/^\d+(\.\d+)+\.?\s+\p{Lu}/u.test(p) && words <= 12 && !/[.;,]$/.test(p) && out.sections.length) { const prev = out.sections[out.sections.length - 1]; out.sections.push({ start: i, heading: i, type: prev.type, title: p.trim(), sub: true }); }
+  });
+  // Short front matter before the first heading is hidden; longer text stays.
+  if (firstHead > 0) for (let i = 0; i < firstHead; i++) if (!out.hidden.includes(i) && !out.abstract.includes(i) && ps[i].split(/\s+/).length < 40) out.hidden.push(i);
+  // Paragraphs cut by a page break: ends mid-sentence, next starts lower-case.
+  for (let i = 0; i < n - 1; i++) if (!/[.!?:"”’)\]]$/.test(ps[i]) && /^\p{Ll}/u.test(ps[i + 1]) && ps[i].split(/\s+/).length > 8 && !out.hidden.includes(i) && !out.sections.some(s => s.heading === i)) out.merge.push([i, i + 1]);
+  const typed = out.sections.filter(s => !s.sub && SEC_ORDER.includes(s.type)).length;
+  if (typed >= 2 || explicitOnly) { out.inferred = false; return out; }
+  // No usable headings: infer sections from wording, keeping the usual order.
+  out.sections = inferSections(ps, new Set([...out.hidden, ...out.abstract]));
+  out.inferred = true; out.merge = [];
+  return out;
+}
+function inferSections(ps, skip) {
+  const idx = ps.map((_, i) => i).filter(i => !skip.has(i)); const n = idx.length; if (!n) return [];
+  const cue = {
+    introduction: /\b(this (article|paper|study|chapter)|we (argue|ask|examine|explore|investigate)|in this (article|paper)|research questions?|aims? to|purpose of|over the past|in recent years)\b/gi,
+    literature: /\b(scholars?|literature|previous (studies|research)|prior (studies|research)|has been (studied|examined|theori[sz]ed)|little is known|theor(y|etical|ies)|concept(ual|uali[sz]e)|framework|approach(es)? to|draws? on|et al\.|\(\p{Lu}[\p{L}'-]+(,| and| et al\.)[^()]{0,60}\d{4}\))/giu,
+    methodology: /\b(interview|survey|ethnograph|netnograph|content analysis|discourse analysis|multimodal|data ?set|corpus|sampl(e|ed|ing)|coded|codebook|we (conducted|collected|analy[sz]ed)|scraped|API|inter-?coder|reliability|NVivo|transcrib|participants were)\w*/gi,
+    findings: /\b(findings? (show|indicate|reveal)|results? (show|indicate|reveal)|we found|show(s|ed)? that|reveal(s|ed)?|indicate(s|d)? that|table \d|figure \d|\d+(\.\d+)? ?%|per ?cent|interviewees|respondents)\b/gi,
+    discussion: /\b(these (results|findings) (suggest|indicate)|suggests? that|implication|in line with|consistent with|contrary to|we interpret|this (pattern|finding))\w*/gi,
+    conclusion: /\b(in conclusion|we conclude|to conclude|this (study|article|paper) (contributes|has shown|demonstrates)|future (research|studies)|limitations?|concluding|in sum|overall,)\b/gi,
+  };
+  const score = idx.map((pi, k) => {
+    const p = ps[pi], rel = n > 1 ? k / (n - 1) : 0;
+    return SEC_ORDER.map(t => (p.match(cue[t]) || []).length + (t === 'introduction' && rel < 0.2 ? 1.5 : 0) + (t === 'conclusion' && rel > 0.85 ? 1.5 : 0) + (t === 'introduction' && k === 0 ? 3 : 0) - (t === 'conclusion' && rel < 0.6 ? 2 : 0));
+  });
+  // Dynamic programming: section type never moves backwards through the paper.
+  const T = SEC_ORDER.length, dp = [], bk = [];
+  for (let k = 0; k < n; k++) {
+    dp.push([]); bk.push([]);
+    for (let t = 0; t < T; t++) {
+      if (k === 0) { dp[k][t] = score[k][t] - (t > 0 ? 3 : 0); bk[k][t] = -1; continue; }
+      let best = -Infinity, bi = 0; for (let u = 0; u <= t; u++) { const v = dp[k - 1][u] - (u !== t ? 0.8 : 0); if (v > best) { best = v; bi = u; } }
+      dp[k][t] = best + score[k][t]; bk[k][t] = bi;
+    }
+  }
+  let t = dp[n - 1].indexOf(Math.max(...dp[n - 1])); const lab = Array(n);
+  for (let k = n - 1; k >= 0; k--) { lab[k] = t; t = bk[k][t]; }
+  const secs = [];
+  lab.forEach((t, k) => { if (!secs.length || secs[secs.length - 1].type !== SEC_ORDER[t]) secs.push({ start: idx[k], heading: null, type: SEC_ORDER[t], title: '' }); });
+  return secs;
+}
+function applyStructure(a, j, source) {
+  if (!j || typeof j !== 'object') throw new Error(L('No structure found in the reply.', 'لم يُعثر على بنية في الرد.'));
+  let ps = paraList(a); const n = ps.length;
+  const ok = i => Number.isInteger(+i) && +i >= 0 && +i < n;
+  // 1. rejoin paragraphs split by page/column breaks
+  const nextOf = {}; (Array.isArray(j.merge) ? j.merge : []).forEach(m => { if (Array.isArray(m) && ok(m[0]) && +m[1] === +m[0] + 1) nextOf[+m[0]] = true; });
+  const map = []; const merged = [];
+  for (let i = 0; i < n; i++) {
+    if (i > 0 && nextOf[i - 1]) { const last = merged.length - 1; const prev = merged[last]; merged[last] = /\p{L}-$/u.test(prev) && /^\p{Ll}/u.test(ps[i]) ? prev.slice(0, -1) + ps[i] : prev + ' ' + ps[i]; map[i] = last; }
+    else { merged.push(ps[i]); map[i] = merged.length - 1; }
+  }
+  const didMerge = merged.length !== n;
+  const M = i => map[+i];
+  const list = k => (Array.isArray(j[k]) ? j[k] : []).filter(ok).map(M);
+  const hidden = new Set(list('hidden')); const abs = [...new Set(list('abstract'))].sort((x, y) => x - y);
+  abs.forEach(i => hidden.add(i));
+  let secs = (Array.isArray(j.sections) ? j.sections : []).filter(s => s && ok(s.start)).map(s => ({
+    start: M(s.start), heading: ok(s.heading) ? M(s.heading) : null,
+    type: SEC_TYPES[s.type] ? s.type : 'other', title: String(s.title || '').replace(/\s+/g, ' ').trim().slice(0, 140)
+  })).sort((x, y) => x.start - y.start).filter((s, k, arr) => k === 0 || s.start !== arr[k - 1].start);
+  secs.forEach(s => { if (s.heading != null) hidden.delete(s.heading); });
+  if (didMerge) { a.content = merged.join('\n\n'); a.translations = {}; }
+  ps = merged;
+  if (abs.length && (!a.abstract || a.abstract.length < 120)) a.abstract = abs.map(i => ps[i]).join(' ').replace(/^abstract\s*[:.—-]?\s*/i, '').trim();
+  const kw = (Array.isArray(j.keywords) ? j.keywords : []).map(k => String(k).trim()).filter(k => k && k.length < 80).slice(0, 15);
+  if (kw.length) a.keywords = kw;
+  a.structure = { v: 1, source, at: new Date().toISOString(), hash: hj(a.content), sections: secs, hidden: [...hidden].sort((x, y) => x - y) };
+  a.structureOff = false;
+  return { sections: secs.length, merged: n - merged.length, hidden: hidden.size };
+}
+function autoStructure(a) {
+  if (structureFor(a) || a.structureOff || paraList(a).length < 4) return false;
+  const j = heuristicStructure(a, { explicitOnly: true });
+  if (j.sections.filter(s => !s.sub && SEC_ORDER.includes(s.type)).length < 2) return false;
+  applyStructure(a, j, 'headings'); save(); return true;
+}
+const STRUCTURE_SYSTEM = 'You organise the extracted text of academic articles into their scholarly structure. You never rewrite or translate the text. Reply with ONLY a JSON object inside a ```json code block.';
+function structureTask(a) {
+  const ps = paraList(a);
+  const lines = ps.map((p, i) => { const w = p.split(/\s+/); return `[${i}] (${w.length}w) ${w.length <= 45 ? p : w.slice(0, 30).join(' ') + ' … ' + w.slice(-10).join(' ')}`; }).join('\n');
+  return `Organise this academic article's text so it can be read section by section. The text was extracted from a PDF or pasted, so it may contain page furniture (journal banners, running heads, author affiliations, emails, copyright lines, received/accepted dates), a repeated title or author list, the abstract, a keywords line, and paragraphs split in two by a page or column break.
+
+Article: "${a.title}" — ${authorsToStr(a.authors) || 'unknown authors'} (${a.year || 'n.d.'})
+
+Every paragraph below is numbered; long ones are abbreviated as "beginning … end" with their word count.
+
+Return a JSON object with:
+- "merge": [[i, i+1], …] consecutive paragraphs that are ONE paragraph split by a page/column break (the first ends mid-sentence, the next continues it).
+- "hidden": numbers of paragraphs that are not reading text: page furniture, affiliations, emails, copyright, dates, the repeated title or author list, a lone "Abstract" label.
+- "abstract": numbers of the paragraphs that form the abstract.
+- "keywords": the article's keywords as an array of strings, if listed (and put that paragraph in "hidden").
+- "sections": in reading order, [{"start": first paragraph of the section (its heading line if it has one), "heading": number of the section's own heading line or null, "type": "introduction" | "literature" | "theory" | "methodology" | "findings" | "discussion" | "conclusion" | "other" | "references" | "backmatter", "title": the heading exactly as written, or a short descriptive title if the section has no heading}].
+
+Rules: follow the article's real headings when they exist; when there are none, infer the sections from the content. List sub-headings as their own sections with the same type as their parent. Use the ORIGINAL paragraph numbers everywhere (before any merge). Do not rewrite or translate any text.
+
+PARAGRAPHS:
+${lines}`;
+}
+function sectionTitle(s) { return s.title || SEC_TYPES[s.type].label; }
+
 /* ---------- Reader ---------- */
 function validHL(a, h, paras) {
   const t = paras[h.para];
@@ -1165,7 +1368,7 @@ function validHL(a, h, paras) {
   for (let i = 0; i < paras.length; i++) { const s = paras[i].indexOf(h.text); if (s > -1) { h.para = i; h.start = s; h.end = s + h.text.length; return true; } }
   return false;
 }
-function paraHTML(a, i, text) {
+function paraInner(a, i, text) {
   const H = []; let pos = 0;
   for (const hl of a.highlights.filter(x => x.para === i).sort((x, y) => x.start - y.start)) { if (hl.start < pos) continue; H.push(hl); pos = hl.end; }
   const Q = (a.quotations || []).filter(q => q.para === i);
@@ -1184,6 +1387,10 @@ function paraHTML(a, i, text) {
     out += seg;
   }
   if (open) out += '</mark>';
+  return out;
+}
+function paraHTML(a, i, text) {
+  const out = paraInner(a, i, text);
   const tr = a.translations?.[i];
   return `<div class="para relative" id="para-${i}">
     <div class="para-tools absolute -start-11 top-1 hidden sm:flex flex-col gap-1">
@@ -1194,11 +1401,75 @@ function paraHTML(a, i, text) {
     <button data-act="trPara" data-i="${i}" class="sm:hidden -mt-3 mb-4 text-[11px] text-ink-400 inline-flex items-center gap-1">${ic('languages', 'w-3 h-3')}Translate</button>
   </div>`;
 }
+function organiseBanner(a) {
+  return `<div class="mb-8 rounded-2xl border border-accent-200 dark:border-accent-800 bg-accent-50/60 dark:bg-accent-500/5 p-4 flex flex-wrap items-center gap-3">
+    ${ic('list-tree', 'w-5 h-5 text-accent-700 dark:text-accent-400 shrink-0')}
+    <div class="flex-1 min-w-[200px]"><p class="text-sm font-semibold">Organise this text into academic sections</p><p class="text-xs text-ink-500 mt-0.5">Introduction · Literature review · Methodology · Findings · Discussion · Conclusion</p></div>
+    <button data-act="organiseClaude" class="${btnPri} !h-8 !text-xs">${ic('sparkles', 'w-3.5 h-3.5')}Organise with Claude</button>
+    <button data-act="organiseQuick" class="${btnCls} !h-8 !text-xs">${ic('scan-text', 'w-3.5 h-3.5')}Quick (offline)</button>
+    <button data-act="organiseDismiss" class="w-8 h-8 grid place-items-center rounded-lg text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800" title="Hide">${ic('x', 'w-4 h-4')}</button>
+  </div>`;
+}
+function sectionHead(a, s, k, ps, level) {
+  const T = SEC_TYPES[s.type];
+  const opts = Object.entries(SEC_TYPES).map(([key, v]) => `<option value="${key}" ${key === s.type ? 'selected' : ''}>${v.label}</option>`).join('');
+  const typeRow = level === 2 ? `<div class="flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold uppercase tracking-wide" style="color:${T.hex}"><span class="w-2 h-2 rounded-full" style="background:${T.hex}"></span><select data-sectype="${k}" class="sec-type text-[11px] font-semibold uppercase tracking-wide" style="color:${T.hex}" title="Change section type">${opts}</select></div>` : '';
+  const cls = level === 2 ? 'reader-h2' : 'reader-h3';
+  const head = s.heading != null && ps[s.heading] != null
+    ? `<h${level} data-raw dir="auto" data-para="${s.heading}" class="${cls}">${paraInner(a, s.heading, ps[s.heading])}</h${level}>`
+    : (s.title ? `<h${level} data-raw dir="auto" class="${cls}">${esc(s.title)}</h${level}>` : `<h${level} class="${cls}">${T.label}</h${level}>`);
+  return typeRow + head;
+}
 function readerBodyHTML(a) {
   const ps = paraList(a); a.highlights = a.highlights.filter(h => validHL(a, h, ps)); a.quotations = (a.quotations || []).filter(q => validHL(a, q, ps));
-  return ps.length ? ps.map((p, i) => paraHTML(a, i, p)).join('') :
-    `<div class="rounded-xl border border-dashed border-ink-300 dark:border-ink-700 p-6 text-center text-sm text-ink-500">No full text yet. Open the article via EZproxy, copy the text, and paste it in <button data-act="editText" class="underline text-accent-600">Edit full text</button>.</div>`;
+  if (!ps.length) return `<div class="rounded-xl border border-dashed border-ink-300 dark:border-ink-700 p-6 text-center text-sm text-ink-500">No full text yet. Open the article via EZproxy, copy the text, and paste it in <button data-act="editText" class="underline text-accent-600">Edit full text</button>.</div>`;
+  const st = structureFor(a);
+  if (!st) return (ps.length >= 3 && !a.structureOff ? organiseBanner(a) : '') + ps.map((p, i) => paraHTML(a, i, p)).join('');
+  const hidden = new Set(st.hidden), secs = st.sections; let html = '';
+  const hid = [...hidden].filter(i => i < ps.length);
+  if (hid.length) html += `<details class="mb-8 rounded-xl border border-dashed border-ink-300 dark:border-ink-700 text-sm"><summary class="cursor-pointer px-4 py-2.5 text-ink-500 flex items-center gap-2">${ic('eye-off', 'w-4 h-4')}<span>Hidden from reading view</span> <span data-raw>(${hid.length})</span><span class="text-ink-400 hidden sm:inline">— title, authors, affiliations, abstract…</span></summary><div class="px-4 pb-3 reader-hidden opacity-75">${hid.map(i => paraHTML(a, i, ps[i])).join('')}</div></details>`;
+  const first = secs.length ? secs[0].start : ps.length;
+  for (let i = 0; i < first; i++) if (!hidden.has(i)) html += paraHTML(a, i, ps[i]);
+  secs.forEach((s, k) => {
+    const end = k + 1 < secs.length ? secs[k + 1].start : ps.length;
+    const level = k > 0 && s.type === secs[k - 1].type && s.type !== 'other' ? 3 : 2;
+    const body = []; for (let i = s.start; i < end; i++) if (i !== s.heading && !hidden.has(i)) body.push(paraHTML(a, i, ps[i]));
+    const T = SEC_TYPES[s.type];
+    if (s.type === 'references' || s.type === 'backmatter') {
+      html += `<details id="sec-${k}" data-sec="${k}" class="reader-sec mt-10 mb-6 rounded-xl border border-ink-200 dark:border-ink-800"><summary class="cursor-pointer px-4 py-3 font-semibold flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${T.hex}"></span>${s.title ? `<span data-raw dir="auto">${esc(s.title)}</span>` : `<span>${T.label}</span>`}</summary><div class="px-4 pb-2 reader-hidden">${body.join('')}</div></details>`;
+      return;
+    }
+    html += level === 2
+      ? `<section id="sec-${k}" data-sec="${k}" class="reader-sec mt-10 first:mt-0 ps-4 sm:ps-5 border-s-[3px]" style="border-color:${T.hex}40">${sectionHead(a, s, k, ps, 2)}${body.join('')}</section>`
+      : `<div id="sec-${k}" data-sec="${k}" class="reader-sec ps-4 sm:ps-5 border-s-[3px] -mt-2 pt-2" style="border-color:${T.hex}40">${sectionHead(a, s, k, ps, 3)}${body.join('')}</div>`;
+  });
+  return html;
 }
+function tocHTML(a) {
+  const st = structureFor(a); if (!st || !st.sections.length) return '';
+  const src = { claude: ['Organised by Claude', 'sparkles'], headings: ['From the article’s headings', 'heading'], inferred: ['Inferred — check', 'wand-sparkles'] }[st.source] || ['Organised', 'list-tree'];
+  const pills = st.sections.map((s, k) => ({ s, k })).filter(({ s, k }) => !(k > 0 && s.type === st.sections[k - 1].type && s.type !== 'other'));
+  return `<div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-3 sm:px-6 pb-2">
+    ${pills.map(({ s, k }) => { const T = SEC_TYPES[s.type]; return `<button data-act="goSec" data-k="${k}" class="toc-pill shrink-0 h-7 px-2.5 rounded-full text-xs font-medium border border-ink-200 dark:border-ink-700 hover:bg-ink-100 dark:hover:bg-ink-800 inline-flex items-center gap-1.5 max-w-[220px]"><span class="w-2 h-2 rounded-full shrink-0" style="background:${T.hex}"></span>${s.title ? `<span data-raw dir="auto" class="truncate">${esc(stripNum(s.title) || s.title)}</span>` : `<span class="truncate">${T.label}</span>`}</button>`; }).join('')}
+    <button data-act="organiseOpen" class="shrink-0 h-7 px-2.5 rounded-full text-[11px] text-ink-500 border border-dashed border-ink-300 dark:border-ink-700 inline-flex items-center gap-1 ms-1">${ic(src[1], 'w-3 h-3')}<span>${src[0]}</span></button>
+  </div>`;
+}
+let secObserver = null;
+function trackSections() {
+  try { secObserver?.disconnect(); } catch (e) {}
+  const secs = document.querySelectorAll('#reader-body .reader-sec'); if (!secs.length || !window.IntersectionObserver) return;
+  const vis = new Map();
+  secObserver = new IntersectionObserver(es => {
+    es.forEach(e => vis.set(e.target.dataset.sec, e.isIntersecting ? e.boundingClientRect.top : null));
+    let best = null, bt = Infinity; vis.forEach((top, k) => { if (top != null && Math.abs(top - 170) < bt) { bt = Math.abs(top - 170); best = k; } });
+    if (best == null) return;
+    const st = structureFor(art()); if (!st) return;
+    let top = +best; while (top > 0 && st.sections[top].type === st.sections[top - 1].type && st.sections[top].type !== 'other') top--;
+    document.querySelectorAll('.toc-pill').forEach(p => { const on = +p.dataset.k === top; p.classList.toggle('bg-ink-900', on); p.classList.toggle('text-white', on); p.classList.toggle('dark:bg-white', on); p.classList.toggle('dark:text-ink-900', on); p.classList.toggle('border-transparent', on); });
+  }, { rootMargin: '-160px 0px -55% 0px', threshold: [0, 0.01] });
+  secs.forEach(s => secObserver.observe(s));
+}
+function refreshReader() { const y = scrollY; render(); scrollTo(0, y); }
 const readerFootHTML = a => `
         <button data-act="panel" data-p="quotes" class="${btnCls}">${ic('highlighter')}All highlights (${a.highlights.length})</button>
         <button data-act="panel" data-p="quotations" class="${btnCls}">${ic('quote')}Quotations (${(a.quotations || []).length})</button>
@@ -1208,12 +1479,16 @@ function readerHTML() {
   const prox = proxied(a);
   return `<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_440px] xl:grid-cols-[minmax(0,1fr)_480px]">
   <section class="min-w-0">
-    <div class="sticky top-[57px] z-20 bg-ink-50/90 dark:bg-ink-950/90 backdrop-blur border-b border-ink-200/70 dark:border-ink-800 px-3 sm:px-6 h-12 flex items-center gap-2">
+    <div class="sticky top-[57px] z-20 bg-ink-50/90 dark:bg-ink-950/90 backdrop-blur border-b border-ink-200/70 dark:border-ink-800">
+    <div class="px-3 sm:px-6 h-12 flex items-center gap-2">
       <button data-act="nav" data-view="library" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800" title="Back to library">${ic('arrow-left', 'w-4 h-4 flip-rtl')}</button>
       <span data-raw class="truncate text-sm font-medium flex-1">${esc(shortAuthors(a))} (${esc(yearOf(a))})</span>
       <div class="hidden sm:flex items-center gap-1 me-1">${S.colors.map((c, i) => `<span class="inline-flex items-center gap-1 text-[11px] text-ink-500 px-1.5" title="Shortcut: select text, press ${i + 1}"><span class="w-2.5 h-2.5 rounded-full" style="background:${c.hex}"></span><span class="hidden xl:inline">${esc(c.name)}</span></span>`).join('')}</div>
+      <button data-act="organiseOpen" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800" title="Organise sections">${ic('list-tree')}</button>
       <button data-act="fontSize" class="w-9 h-9 grid place-items-center rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800" title="Reading size">${ic('a-large-small')}</button>
       <button data-act="togglePanel" class="lg:hidden h-9 px-3 rounded-lg bg-accent-700 text-white text-sm font-medium inline-flex items-center gap-1.5">${ic('panel-right')}Tools</button>
+    </div>
+    <div id="toc-wrap">${tocHTML(a)}</div>
     </div>
     <article class="max-w-[74ch] mx-auto px-5 sm:px-14 py-8 sm:py-12 reader-${S.settings.readerSize}">
       <div class="flex flex-wrap items-center gap-2 mb-4">${statusBadge(a.status)}${sampleBadge(a)}${a.platforms.map(platformChip).join('')}</div>
@@ -1225,7 +1500,7 @@ function readerHTML() {
         ${prox ? `<a href="${esc(prox)}" target="_blank" rel="noopener" class="${btnCls} !h-8 !text-xs">${ic('key-round', 'w-3.5 h-3.5')}Open via EZproxy</a>` : ''}
         <button data-act="editText" class="${btnCls} !h-8 !text-xs">${ic('file-pen-line', 'w-3.5 h-3.5')}Edit full text</button>
       </div>
-      ${a.abstract ? `<div class="mt-8 mb-10 rounded-2xl bg-white dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 p-5"><div class="${labelCls}">Abstract</div><p data-raw dir="auto" class="font-serif text-[1.02rem] leading-relaxed text-ink-700 dark:text-ink-200">${esc(a.abstract)}</p></div>` : '<div class="h-8"></div>'}
+      ${a.abstract ? `<div class="mt-8 mb-10 rounded-2xl bg-white dark:bg-ink-900 border border-ink-200/80 dark:border-ink-800 p-5"><div class="${labelCls}">Abstract</div><p data-raw dir="auto" class="font-serif text-[1.02rem] leading-relaxed text-ink-700 dark:text-ink-200">${esc(a.abstract)}</p>${(a.keywords || []).length ? `<div class="mt-4 flex flex-wrap items-center gap-1.5"><span class="${labelCls} !mb-0 me-1">Keywords</span>${a.keywords.map(k => chip(k)).join('')}</div>` : ''}</div>` : '<div class="h-8"></div>'}
       <div id="reader-body">${readerBodyHTML(a)}</div>
       <div id="reader-foot" class="mt-12 pt-6 border-t border-ink-200 dark:border-ink-800 flex flex-wrap gap-2 text-sm">${readerFootHTML(a)}</div>
     </article>
@@ -1250,7 +1525,7 @@ function renderPanel() {
   const nb = $('#panel-body'); if (nb && UI.panel !== 'assistant') nb.scrollTop = st;
   if (UI.panel === 'assistant') { const log = $('#chatlog'); if (log) log.scrollTop = log.scrollHeight; }
 }
-function renderBody() { const a = art(); const b = $('#reader-body'); if (!a || !b) return; b.innerHTML = readerBodyHTML(a); const f = $('#reader-foot'); if (f) f.innerHTML = readerFootHTML(a); icons(); }
+function renderBody() { const a = art(); const b = $('#reader-body'); if (!a || !b) return; b.innerHTML = readerBodyHTML(a); const f = $('#reader-foot'); if (f) f.innerHTML = readerFootHTML(a); const t = $('#toc-wrap'); if (t) t.innerHTML = tocHTML(a); icons(); trackSections(); }
 
 /* Tag chip editor */
 function tagEditor(a, field, suggestions, placeholder) {
@@ -2018,13 +2293,14 @@ function topicMd(t) {
    ========================================================= */
 function openArticle(id, target) {
   const a = art(id); if (!a) return;
+  try { autoStructure(a); } catch (e) { console.warn('[structure]', e); }
   UI.articleId = id; UI.view = 'reader'; UI.panelOpen = false; a.lastOpened = new Date().toISOString(); save(); closeModal(); render();
   requestAnimationFrame(() => {
     let el = null;
     if (target?.hl) el = document.querySelector(`[data-hl="${target.hl}"]`);
     else if (target?.q) el = document.querySelector(`[data-q="${target.q}"]`);
     else if (target?.para != null) el = document.querySelector(`[data-para="${target.para}"]`);
-    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    if (el) { const d = el.closest('details'); if (d) d.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
     else window.scrollTo({ top: 0 });
   });
 }
@@ -2087,7 +2363,7 @@ const A = {
   rmTag: t => { const a = art(); a[t.dataset.f] = a[t.dataset.f].filter(x => x !== t.dataset.t); save(); renderPanel(); },
   deleteArticle: () => { const a = art(); if (!confirm(L(`Delete “${a.title}” and its ${a.highlights.length} highlights?`, `حذف «${a.title}» مع ${a.highlights.length} من تظليلاته؟`))) return; S.articles = S.articles.filter(x => x.id !== a.id); delete S.chats[a.id]; UI.articleId = null; UI.view = 'library'; save(); render(); toast('Article deleted'); },
   editText: () => openTextEditor(),
-  saveText: () => { const a = art(); a.content = $('#m-text').value; save(); closeModal(); renderBody(); renderPanel(); toast('Full text saved'); },
+  saveText: () => { const a = art(); a.content = $('#m-text').value; try { autoStructure(a); } catch (e) {} save(); closeModal(); refreshReader(); toast('Full text saved'); },
   editHL: (t, e) => { const s = window.getSelection(); if (s && !s.isCollapsed && t.tagName === 'MARK') return; openHLModal(t.dataset.id); },
   editNote: t => openNoteModal(t.dataset.aid, t.dataset.id),
   quoteColor: t => { UI.quoteColor = t.dataset.c; renderPanel(); },
@@ -2147,6 +2423,35 @@ const A = {
   clearChat: () => { S.chats[UI.articleId] = []; save(); renderPanel(); },
   copyMsg: t => copyText(S.chats[UI.articleId][+t.dataset.i].content),
   /* selection toolbar */
+  goSec: t => { const el = document.getElementById('sec-' + t.dataset.k); if (el) { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
+  organiseOpen: () => {
+    const a = art(); const st = structureFor(a);
+    openModal(`<h3 class="text-lg font-semibold mb-1 flex items-center gap-2">${ic('list-tree')}Organise into academic sections</h3>
+      <p class="text-sm text-ink-500 mb-5">Groups the text into Introduction, Literature review, Methodology, Findings, Discussion and Conclusion, hides page furniture (journal banners, affiliations, dates) and rejoins paragraphs split by page breaks. The wording is not changed; highlights and quotations stay attached.</p>
+      <div class="space-y-2">
+        <button data-act="organiseClaude" class="w-full text-start rounded-xl border-2 border-accent-600 p-3 hover:bg-accent-50 dark:hover:bg-accent-500/10"><div class="font-semibold flex items-center gap-2">${ic('sparkles')}Organise with Claude</div><div class="text-xs text-ink-500 mt-0.5">Most accurate: reads every paragraph and the article’s own headings${hasKey() ? '' : ' — uses your Claude subscription (copy → paste)'}.</div></button>
+        <button data-act="organiseQuick" class="w-full text-start rounded-xl border border-ink-200 dark:border-ink-700 p-3 hover:bg-ink-50 dark:hover:bg-ink-800"><div class="font-semibold flex items-center gap-2">${ic('scan-text')}Quick organise (offline)</div><div class="text-xs text-ink-500 mt-0.5">Uses the article’s headings; when there are none, infers sections from the wording.</div></button>
+        ${st ? `<button data-act="organiseOff" class="w-full text-start rounded-xl border border-ink-200 dark:border-ink-700 p-3 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600"><div class="font-semibold flex items-center gap-2">${ic('list')}Show as continuous text</div><div class="text-xs opacity-80 mt-0.5">Removes the sections (you can organise again at any time).</div></button>` : ''}
+      </div>`);
+  },
+  organiseQuick: () => {
+    const a = art(); const j = heuristicStructure(a); const r = applyStructure(a, j, j.inferred ? 'inferred' : 'headings'); save(); closeModal(); refreshReader();
+    toast(j.inferred ? L(`Sections inferred from the wording (${r.sections}) — check them, or organise with Claude`, `استُنتجت الأقسام من الصياغة (${r.sections}) — راجعها، أو نظّمها عبر Claude`) : L(`Organised from the article’s headings (${r.sections} sections)`, `نُظّم وفق عناوين المقال (${r.sections} قسماً)`));
+  },
+  organiseClaude: async t => {
+    const a = art();
+    const done = (j) => { const r = applyStructure(a, j, 'claude'); save(); closeModal(); refreshReader(); toast(L(`Organised: ${r.sections} sections · ${r.hidden} hidden · ${r.merged} paragraphs rejoined`, `نُظّم: ${r.sections} قسماً · ${r.hidden} مخفية · ${r.merged} فقرة أُعيد وصلها`)); };
+    if (hasKey()) {
+      if (t) { t.disabled = true; t.innerHTML = ic('loader-2', 'w-4 h-4 animate-spin') + tr('Organising…'); icons(); }
+      try { const out = await claude(STRUCTURE_SYSTEM, [{ role: 'user', content: structureTask(a) }], 4000); const j = parseJSON(out); if (!j) throw new Error('Unexpected response format'); done(j); }
+      catch (e) { toast(L('Organising failed: ', 'تعذّر التنظيم: ') + e.message, 'error'); if (t) { t.disabled = false; renderBody(); } }
+      return;
+    }
+    claudeHandoff({ title: L('Organise in Claude', 'التنظيم في Claude'), prompt: handoffText(STRUCTURE_SYSTEM, structureTask(a)),
+      onResult: txt => { const j = parseJSON(txt); if (!j) throw new Error(L('Couldn’t find the JSON in the reply — copy Claude’s whole answer, including the code block.', 'لم أجد كتلة JSON في الرد — انسخ رد Claude كاملاً بما فيه كتلة الكود.')); done(j); return 'closed'; } });
+  },
+  organiseOff: () => { const a = art(); a.structure = null; a.structureOff = true; save(); closeModal(); refreshReader(); },
+  organiseDismiss: () => { const a = art(); a.structureOff = true; save(); renderBody(); },
   selHL: t => addHighlight(t.dataset.c),
   selQuote: () => {
     const a = art(); const s = UI.sel; if (!a || !s || s.multi) return;
@@ -2275,6 +2580,7 @@ document.addEventListener('change', e => {
     save();
     if (['title', 'authors', 'year', 'journal', 'volume', 'issue', 'pages', 'doi', 'url', 'abstract', 'status'].includes(k)) { const st = scrollY; render(); scrollTo(0, st); }
   }
+  if (t.dataset.sectype != null) { const a = art(); const st = structureFor(a); if (st && st.sections[+t.dataset.sectype]) { st.sections[+t.dataset.sectype].type = t.value; save(); renderBody(); } }
   if (t.dataset.filter) { UI.filters[t.dataset.filter] = t.value; render(); }
   if (t.dataset.actChange === 'synthArticle') { UI.synthArticle = t.value; render(); }
   if (t.dataset.setting) { S.settings[t.dataset.setting] = t.type === 'checkbox' ? t.checked : t.value.trim(); save(); if (t.dataset.setting === 'serverClaude') { openSettings(); render(); } else if (UI.view === 'reader') renderPanel(); }

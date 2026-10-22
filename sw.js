@@ -1,6 +1,6 @@
 // محمد يبحث — service worker — offline app shell.
 // Data never passes through this cache: Supabase and Claude requests go straight to the network.
-const VERSION = 'lectern-v5';
+const VERSION = 'lectern-v6';
 const SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'unpkg.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
